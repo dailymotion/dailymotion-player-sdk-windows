@@ -41,6 +41,6 @@ We are relying on the [GitHub issues tracker](issues) for feedback. File bugs or
 
 Here is what is coming in the next months:
 
-- New API SDK for Windows UWP apps
+- Improve Player SDK for Windows UWP apps
 
 **Warning:** **This library is up-to-date and maintained if you want to use the Dailymotion Player on your native Windows UWP apps**.
