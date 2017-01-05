@@ -1,6 +1,3 @@
-# dailymotion-player-sdk-windows
-
-
 #Dailymotion Player SDK for Windows UWP
 
 This repository contains the official open source .NET SDK that allows you to embed Dailymotion Videos in your UWP application.
