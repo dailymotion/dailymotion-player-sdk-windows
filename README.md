@@ -33,6 +33,7 @@ You will need to add `https://*.dailymotion.com/` to the application contentUri 
 Screenshot:
 ![http://i.imgur.com/OgKljKF.png](http://i.imgur.com/OgKljKF.png)
 
+
  ###Feedback
 
 We are relying on the [GitHub issues tracker](issues) for feedback. File bugs or other issues http://github.com/dailymotion/dailymotion-player-sdk-windows/issues
