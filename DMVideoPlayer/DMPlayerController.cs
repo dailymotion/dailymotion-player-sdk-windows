@@ -9,7 +9,7 @@ using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
 using DMVideoPlayer.Annotations;
- 
+
 
 namespace DMVideoPlayer
 {
@@ -127,21 +127,21 @@ namespace DMVideoPlayer
         {
             var components = String.Concat(BaseUrl, pathPrefix, videoId);
 
-            if (parameters==null)
+            if (parameters == null)
             {
                 parameters = new Dictionary<string, string>();
             }
 
             parameters["api"] = "nativeBridge";
-            parameters["objc_sdk_version"] = version;
+            //parameters["objc_sdk_version"] = version;
             parameters["app"] = bundleIdentifier;
             parameters["GK_PV5_ANTI_ADBLOCK"] = "0";
-           
+
             var builder = new StringBuilder(components);
             if (parameters.Any())
                 builder.Append("?");
             builder.Append(String.Join("&", from p in parameters select String.Format("{0}={1}", p.Key, p.Value)));
-           
+
             return new Uri(builder.ToString());
         }
 
@@ -163,6 +163,13 @@ namespace DMVideoPlayer
             await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
         }
 
+        private async void CallMethodeOnPlayer(string callMethod)
+        {
+            List<string> callingJsMethod = new List<string>();
+            callingJsMethod.Add(callMethod);
+            await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+        }
+
         public void ToggleFullscreen()
         {
             NotifyPlayerApi("notifyFullscreenChanged");
@@ -176,6 +183,29 @@ namespace DMVideoPlayer
         public void Pause()
         {
             NotifyPlayerApi("pause");
+        }
+
+        public void Mute(string value)
+        {
+            NotifyPlayerApi("setMuted", value);
+        }
+        public void Volume(double value)
+        {
+            if (value >= 0.0 && value <= 1.0)
+            {
+                //NotifyPlayerApi("setVolume", value.ToString());
+                NotifyPlayerApi(string.Format("setVolume({0})", value.ToString()));
+            }
+        }
+
+        public void ToggleMuted()
+        {
+            CallMethodeOnPlayer("player.toggleMuted()");
+        }
+
+        public void TogglePlay()
+        {
+            CallMethodeOnPlayer("player.togglePlay()");
         }
 
         //public void seek(TimeInterval)
