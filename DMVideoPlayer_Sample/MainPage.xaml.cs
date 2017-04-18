@@ -114,7 +114,9 @@ namespace DMVideoPlayer_Sample
 
         private void PauseButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
-            dmPlayerController?.Pause();
+            //dmPlayerController?.Pause();
+
+            dmPlayerController?.Mute("true");
         }
 
         private void Setting1ButtonBase_OnClick(object sender, RoutedEventArgs e)
@@ -127,6 +129,7 @@ namespace DMVideoPlayer_Sample
             parameters["ui-logo"] = "false";
             parameters["endscreen-enable"] = "false";
             parameters["locale"] = "en";
+            parameters["mute"] = "true";
 
             var accessToken = "";// "myAccessToken";
 

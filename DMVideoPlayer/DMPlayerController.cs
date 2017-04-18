@@ -17,6 +17,7 @@ namespace DMVideoPlayer
     {
 
         private static string defaultUrl = "https://www.dailymotion.com";
+        private static bool defaultIsTapEnabled = true;
 
         private static string HockeyAppId = "6d380067c4d848ce863b232a1c5f10ae";
         private static string version = "2.9.3";
@@ -33,6 +34,14 @@ namespace DMVideoPlayer
         {
             get { return _baseUrl ?? defaultUrl; }
             set { _baseUrl = value; }
+        }
+
+        private bool? _isTapEnabled; // URL!
+
+        public bool IsTapEnabled
+        {
+            get { return _isTapEnabled ?? defaultIsTapEnabled; }
+            set { _isTapEnabled = value; }
         }
 
         private WebView _dmVideoPlayer;
@@ -77,6 +86,23 @@ namespace DMVideoPlayer
                 {
                     DmVideoPlayer = NewWebView();
 
+                    //setting cookies if needed
+                    if (withParameters != null)
+                    {
+                        //if in params we have the keys v1st or tg then we need to send it to the player in a cookie
+
+                        if (withParameters.ContainsKey("v1st"))
+                        {
+                            //set cookie
+                            SetCookieInWebView("v1st", withParameters["v1st"]);
+                        }
+                        else if (withParameters.ContainsKey("tg"))
+                        {
+                            //set cookie
+                            SetCookieInWebView("tg", withParameters["tg"]);
+                        }
+                    }
+
                     //Recieving the events the player is sending
                     DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
                 }
@@ -108,7 +134,7 @@ namespace DMVideoPlayer
 
             if (accessToken != "")
             {
-                message.Headers.Add("Authorization", accessToken);
+                message.Headers.Add("Authorization", "Bearer " + accessToken);
             }
             return message;
         }
@@ -118,8 +144,20 @@ namespace DMVideoPlayer
         {
             //var webView = new WebView(WebViewExecutionMode.SeparateThread);
             var webView = new WebView(WebViewExecutionMode.SameThread);
+            webView.IsTapEnabled = IsTapEnabled;
+
             webView.Opacity = 1;
             return webView;
+        }
+
+
+        private void SetCookieInWebView(string key, string value)
+        {
+            Uri baseUri = new Uri(defaultUrl);
+            Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
+            Windows.Web.Http.HttpCookie cookie = new Windows.Web.Http.HttpCookie(key, baseUri.Host, "/");
+            cookie.Value = value;
+            filter.CookieManager.SetCookie(cookie, false);
         }
 
 
@@ -208,10 +246,12 @@ namespace DMVideoPlayer
             CallMethodeOnPlayer("player.togglePlay()");
         }
 
-        //public void seek(TimeInterval)
-        //{
-        //    NotifyPlayerApi(method: "seek", argument: "\(to)");
-        //}
+        public void Seek(int seconds)
+        {
+            //player.seek(30);
+            CallMethodeOnPlayer(string.Format("player.seek({0})", seconds));
+            //NotifyPlayerApi(method: "seek", argument: "\(to)");
+        }
 
 
         public event PropertyChangedEventHandler PropertyChanged;
