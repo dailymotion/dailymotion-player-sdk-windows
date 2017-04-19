@@ -96,10 +96,15 @@ namespace DMVideoPlayer
                             //set cookie
                             SetCookieInWebView("v1st", withParameters["v1st"]);
                         }
-                        else if (withParameters.ContainsKey("tg"))
+                        else if (withParameters.ContainsKey("ts"))
                         {
                             //set cookie
-                            SetCookieInWebView("tg", withParameters["tg"]);
+                            SetCookieInWebView("ts", withParameters["ts"]);
+                        }
+                        else if (withParameters.ContainsKey("clsu"))
+                        {
+                            //set cookie
+                            SetCookieInWebView("clsu", withParameters["clsu"]);
                         }
                     }
 
