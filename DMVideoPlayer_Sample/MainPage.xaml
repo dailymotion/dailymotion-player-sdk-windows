@@ -12,6 +12,7 @@
 
         <Button Content="Play" Click="PlayButtonBase_OnClick" />
         <Button Content="Pause" Click="PauseButtonBase_OnClick" />
+        <Button Content="Mute" Click="mute_click" />
         <Button Content="load player setting 1" Click="Setting1ButtonBase_OnClick" />
         <Button Content="load player  no controls" Click="Setting2ButtonBase_OnClick" />
 

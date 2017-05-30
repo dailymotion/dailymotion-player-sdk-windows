@@ -178,7 +178,8 @@ namespace DMVideoPlayer
             parameters["api"] = "nativeBridge";
             //parameters["objc_sdk_version"] = version;
             parameters["app"] = bundleIdentifier;
-            parameters["GK_PV5_ANTI_ADBLOCK"] = "0";
+            //parameters["GK_PV5_ANTI_ADBLOCK"] = "0";
+            parameters["GK_PV5_NEON"] = "1";
 
             var builder = new StringBuilder(components);
             if (parameters.Any())
@@ -206,7 +207,8 @@ namespace DMVideoPlayer
             await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
         }
 
-        private async void CallMethodeOnPlayer(string callMethod)
+       // private async void CallMethodeOnPlayer(string callMethod)
+        public async void CallMethodeOnPlayer(string callMethod)
         {
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callMethod);
@@ -228,10 +230,23 @@ namespace DMVideoPlayer
             NotifyPlayerApi("pause");
         }
 
-        public void Mute(string value)
+        //public void Mute(string value)
+        //{
+        //    NotifyPlayerApi("setMuted", value);
+        //}
+
+        public void Mute()
         {
-            NotifyPlayerApi("setMuted", value);
+            //Log.d("PLAYER", "MUTE");
+            NotifyPlayerApi("mute");
         }
+
+        public void Unmute()
+        {
+            //Log.d("PLAYER", "UNMUTE");
+            NotifyPlayerApi("unmute");
+        }
+
         public void Volume(double value)
         {
             if (value >= 0.0 && value <= 1.0)

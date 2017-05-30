@@ -82,9 +82,7 @@ namespace DMVideoPlayer_Sample
             parameters["fullscreen-action"] = "trigger_event";
             parameters["sharing-action"] = "trigger_event";
             parameters["autoplay"] = "true";
-            parameters["ui-logo"] = "false";
-            parameters["endscreen-enable"] = "false";
-            parameters["locale"] = "en";
+
 
             var accessToken = "";// "myAccessToken";
 
@@ -105,6 +103,8 @@ namespace DMVideoPlayer_Sample
             {
                 Windows.ApplicationModel.DataTransfer.DataTransferManager.ShowShareUI();
             }
+
+           
         }
 
         private void PlayButtonBase_OnClick(object sender, RoutedEventArgs e)
@@ -153,6 +153,13 @@ namespace DMVideoPlayer_Sample
 
             //init the DMVideoPlayer
             dmPlayerController.Load("x2ycweg", accessToken, parameters);
+        }
+
+        private void mute_click(object sender, RoutedEventArgs e)
+        {
+           // dmPlayerController.CallMethodeOnPlayer("player.setMuted(true)");
+
+            dmPlayerController.Mute();
         }
     }
 }
