@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
@@ -29,7 +31,13 @@ namespace DMVideoPlayer
         public event Action OnDmWebViewMessageUpdated;
 
         private string _baseUrl; // URL!
-
+        public bool ApiReady { get; set; }
+        public string VideoId { get; set; }
+        // public string loadedJsonData { get; set; }
+        public IDictionary<string, string> WithParameters { get; set; }
+        public bool IsHeroVideo { get; set; }
+        public bool PendingPlay { get; set; }
+        public bool ShowingAd { get; set; }
         public string BaseUrl
         {
             get { return _baseUrl ?? defaultUrl; }
@@ -78,6 +86,10 @@ namespace DMVideoPlayer
         /// - Parameter withParameters: The list of configuration parameters that are passed to the player.
         public void Load(string videoId, string accessToken = "", IDictionary<string, string> withParameters = null)
         {
+
+            this.VideoId = videoId;
+            this.WithParameters = withParameters;
+
             //check base url
             if (BaseUrl != null)
             {
@@ -90,7 +102,6 @@ namespace DMVideoPlayer
                     if (withParameters != null)
                     {
                         //if in params we have the keys v1st or tg then we need to send it to the player in a cookie
-
                         if (withParameters.ContainsKey("v1st"))
                         {
                             //set cookie
@@ -110,13 +121,15 @@ namespace DMVideoPlayer
 
                     //Recieving the events the player is sending
                     DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
+
+                    //creating http request message to send to the webview
+                    HttpRequestMessage request = NewRequest(videoId, accessToken, withParameters);
+
+                    //doing call
+                    DmVideoPlayer.NavigateWithHttpRequestMessage(request);
                 }
-
-                //creating http request message to send to the webview
-                HttpRequestMessage request = NewRequest(videoId, accessToken, withParameters);
-
-                //doing call
-                DmVideoPlayer.NavigateWithHttpRequestMessage(request);
+                else
+                    Load();
             }
         }
 
@@ -131,6 +144,68 @@ namespace DMVideoPlayer
         private void DmWebView_ScriptNotify(object sender, NotifyEventArgs e)
         {
             DmWebViewMessage = e?.Value;
+
+            //switch (e?.Value.Contains)
+            //{
+            //    case "apiready":
+            //        {
+            //            ApiReady = true;
+            //            if (PendingPlay)
+            //            {
+            //                PendingPlay = false;
+            //                Load();
+            //            }
+
+            //            //Tracking.setPV5Info(map);
+            //            break;
+            //        }
+            //    case "ad_start":
+            //        {
+            //            ShowingAd = true;
+            //            break;
+            //        }
+            //    case "ad_end":
+            //        {
+            //            ShowingAd = false;
+            //            break;
+            //        }
+            //}
+        }
+
+        private void Load()
+        {
+            //init Environment Info
+            InitEnvironmentInfoVariables(WithParameters["jsonEnvironmentInfo"]);
+
+            //mHasMetadata = false;
+            if (WithParameters !=null && 
+                WithParameters.ContainsKey("loadedJsonData"))
+            {
+                CallPlayerMethod("load", VideoId, WithParameters["loadedJsonData"]);
+            }
+            else
+            {
+                CallPlayerMethod("load", VideoId);
+            }
+
+            //if (IsHeroVideo)
+            //{
+            //    Mute();
+            //}
+            //else
+            //{
+            //    Unmute();
+            //}
+        }
+
+        public void InitEnvironmentInfoVariables(string jsonData)
+        {
+            //PropData propData = new PropData();
+            //propData.info = new Tracking.EnvironmentInfo();
+            //propData.info.device = TDeviceInfo.get();
+            //propData.info.app = TAppInfo.get();
+            //propData.info.visitor = TVisitorInfo.create();
+            CallPlayerMethod("setProp", "neon", jsonData);
         }
 
         private HttpRequestMessage NewRequest(string videoId, string accessToken = "", IDictionary<string, string> parameters = null)
@@ -204,15 +279,48 @@ namespace DMVideoPlayer
             callingJsMethod.Add(callingMethod);
 
             //so sad
-            await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            if (invokeScriptAsync != null)
+                await invokeScriptAsync;
         }
 
-       // private async void CallMethodeOnPlayer(string callMethod)
-        public async void CallMethodeOnPlayer(string callMethod)
+        // private async void CallEvalWebviewMethod(string callMethod)
+        private async void CallEvalWebviewMethod(string callMethod)
         {
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callMethod);
-            await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            if (invokeScriptAsync != null)
+                await invokeScriptAsync;
+        }
+
+        public async void CallPlayerMethod(string method, string param, string dataJson = null)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append("player.");
+            builder.Append(method);
+            builder.Append('(');
+            builder.Append("'" + param + "'");
+
+            if (dataJson != null)
+            {
+                builder.Append("JSON.parse('" + dataJson + "')");
+            }
+
+            builder.Append(')');
+            String js = builder.ToString();
+
+            CallEvalWebviewMethod(js);
+        }
+
+        public void setHeroVideo(bool isHeroVideo)
+        {
+            IsHeroVideo = isHeroVideo;
+        }
+
+        public bool isHeroVideo()
+        {
+            return IsHeroVideo;
         }
 
         public void ToggleFullscreen()
@@ -222,28 +330,26 @@ namespace DMVideoPlayer
 
         public void Play()
         {
+            Debug.Write("PLAYER", "play");
             NotifyPlayerApi("play");
         }
 
         public void Pause()
         {
+            Debug.Write("PLAYER", "pause");
             NotifyPlayerApi("pause");
         }
 
-        //public void Mute(string value)
-        //{
-        //    NotifyPlayerApi("setMuted", value);
-        //}
 
         public void Mute()
         {
-            //Log.d("PLAYER", "MUTE");
+            Debug.Write("PLAYER", "MUTE");
             NotifyPlayerApi("mute");
         }
 
         public void Unmute()
         {
-            //Log.d("PLAYER", "UNMUTE");
+            Debug.Write("PLAYER", "unmute");
             NotifyPlayerApi("unmute");
         }
 
@@ -256,20 +362,12 @@ namespace DMVideoPlayer
             }
         }
 
-        public void ToggleMuted()
-        {
-            CallMethodeOnPlayer("player.toggleMuted()");
-        }
 
-        public void TogglePlay()
-        {
-            CallMethodeOnPlayer("player.togglePlay()");
-        }
 
         public void Seek(int seconds)
         {
             //player.seek(30);
-            CallMethodeOnPlayer(string.Format("player.seek({0})", seconds));
+            CallEvalWebviewMethod(string.Format("player.seek({0})", seconds));
             //NotifyPlayerApi(method: "seek", argument: "\(to)");
         }
 

@@ -82,6 +82,9 @@ namespace DMVideoPlayer_Sample
             parameters["fullscreen-action"] = "trigger_event";
             parameters["sharing-action"] = "trigger_event";
             parameters["autoplay"] = "true";
+            parameters["loadedJsonData"] = "json data loadedJsonData";
+            parameters["loadedJsonData"] = "json data jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo";
+
 
 
             var accessToken = "";// "myAccessToken";
@@ -103,8 +106,6 @@ namespace DMVideoPlayer_Sample
             {
                 Windows.ApplicationModel.DataTransfer.DataTransferManager.ShowShareUI();
             }
-
-           
         }
 
         private void PlayButtonBase_OnClick(object sender, RoutedEventArgs e)
@@ -116,7 +117,7 @@ namespace DMVideoPlayer_Sample
         {
             //dmPlayerController?.Pause();
 
-            dmPlayerController?.Mute("true");
+            dmPlayerController?.Mute();
         }
 
         private void Setting1ButtonBase_OnClick(object sender, RoutedEventArgs e)
@@ -130,6 +131,9 @@ namespace DMVideoPlayer_Sample
             parameters["endscreen-enable"] = "false";
             parameters["locale"] = "en";
             parameters["mute"] = "true";
+            parameters["loadedJsonData"] = "json data loadedJsonData";
+            parameters["jsonEnvironmentInfo"] = "json data jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo";
+
 
             var accessToken = "";// "myAccessToken";
 
@@ -148,6 +152,12 @@ namespace DMVideoPlayer_Sample
             parameters["endscreen-enable"] = "false";
             parameters["locale"] = "en";
             parameters["controls"] = "false";
+
+
+            parameters["loadedJsonData"] = "json data loadedJsonData";
+            parameters["loadedJsonData"] = "json data jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo";
+
+            
 
             var accessToken = "";// "myAccessToken";
 
