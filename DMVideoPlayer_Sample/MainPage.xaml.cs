@@ -15,6 +15,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using DMVideoPlayer;
+using Newtonsoft.Json;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -131,8 +132,7 @@ namespace DMVideoPlayer_Sample
             parameters["endscreen-enable"] = "false";
             parameters["locale"] = "en";
             parameters["mute"] = "true";
-            parameters["loadedJsonData"] = "json data loadedJsonData";
-            parameters["jsonEnvironmentInfo"] = "json data jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo";
+        
 
 
             var accessToken = "";// "myAccessToken";
@@ -153,11 +153,7 @@ namespace DMVideoPlayer_Sample
             parameters["locale"] = "en";
             parameters["controls"] = "false";
 
-
-            parameters["loadedJsonData"] = "json data loadedJsonData";
-            parameters["loadedJsonData"] = "json data jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo";
-
-            
+ 
 
             var accessToken = "";// "myAccessToken";
 

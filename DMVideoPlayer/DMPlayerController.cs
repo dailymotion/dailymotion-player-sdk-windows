@@ -175,10 +175,15 @@ namespace DMVideoPlayer
         private void Load()
         {
             //init Environment Info
-            InitEnvironmentInfoVariables(WithParameters["jsonEnvironmentInfo"]);
+            if (WithParameters != null
+                && WithParameters.ContainsKey("jsonEnvironmentInfo"))
+            {
+                InitEnvironmentInfoVariables(WithParameters["jsonEnvironmentInfo"]);
+            }
+
 
             //mHasMetadata = false;
-            if (WithParameters !=null && 
+            if (WithParameters != null &&
                 WithParameters.ContainsKey("loadedJsonData"))
             {
                 CallPlayerMethod("load", VideoId, WithParameters["loadedJsonData"]);
@@ -272,16 +277,18 @@ namespace DMVideoPlayer
 
         private async void NotifyPlayerApi(string method, string argument = null)
         {
-
             string callingMethod = string.Format("player.api('{0}')", method);
 
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callingMethod);
 
+
+            await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+
             //so sad
-            var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
-            if (invokeScriptAsync != null)
-                await invokeScriptAsync;
+            //var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            //if (invokeScriptAsync != null)
+            //    await invokeScriptAsync;
         }
 
         // private async void CallEvalWebviewMethod(string callMethod)
@@ -289,9 +296,14 @@ namespace DMVideoPlayer
         {
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callMethod);
-            var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
-            if (invokeScriptAsync != null)
-                await invokeScriptAsync;
+
+
+            await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+
+
+            //var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            //if (invokeScriptAsync != null)
+            //    await invokeScriptAsync;
         }
 
         public async void CallPlayerMethod(string method, string param, string dataJson = null)
@@ -304,7 +316,7 @@ namespace DMVideoPlayer
 
             if (dataJson != null)
             {
-                builder.Append("JSON.parse('" + dataJson + "')");
+                builder.Append(",JSON.parse('" + dataJson + "')");
             }
 
             builder.Append(')');
