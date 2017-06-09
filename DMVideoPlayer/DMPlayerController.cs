@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,6 +17,8 @@ using DMVideoPlayer.Annotations;
 
 namespace DMVideoPlayer
 {
+
+
     public class DMPlayerController : INotifyPropertyChanged
     {
 
@@ -23,9 +27,11 @@ namespace DMVideoPlayer
 
         private static string HockeyAppId = "6d380067c4d848ce863b232a1c5f10ae";
         private static string version = "2.9.3";
-        private static string bundleIdentifier = "WindowsSDK";
+        private static string bundleIdentifier = "com.dailymotion.dailymotion-alpha";
+        //private static string bundleIdentifier = "WindowsSDK";
         private static string eventName = "dmevent";
-        private static string pathPrefix = "/embed/video/";
+        private static string eventNameV2 = "event=";
+        private static string pathPrefix = "/embed/";
         private static string messageHandlerEvent = "triggerEvent";
 
         public event Action OnDmWebViewMessageUpdated;
@@ -33,6 +39,7 @@ namespace DMVideoPlayer
         private string _baseUrl; // URL!
         public bool ApiReady { get; set; }
         public string VideoId { get; set; }
+        public string AccessToken { get; set; }
         // public string loadedJsonData { get; set; }
         public IDictionary<string, string> WithParameters { get; set; }
         public bool IsHeroVideo { get; set; }
@@ -79,19 +86,64 @@ namespace DMVideoPlayer
             }
         }
 
+        /// Initialize a new instance of the player
+        /// - Parameters:
+        ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
+        ///   - withParameters:  The dictionary of configuration parameters that are passed to the player.
+        ///   - withCookiesParameters:     An optional array of HTTPCookie values that are passed to the player.
+        public void Init(string accessToken = "", IDictionary<string, string> withParameters = null, IDictionary<string, string> withCookiesParameters = null)
+        {
+            //  self.baseUrl = baseUrl ?? DMPlayerViewController.defaultUrl
+            //super.init(nibName: nil, bundle: nil)
+            //webView = newWebView(cookies: cookies)
+            //view = webView
+            //let request = newRequest(parameters: parameters, accessToken: accessToken, cookies: cookies)
+            //webView.load(request)
+            //webView.navigationDelegate = self
+            this.AccessToken = accessToken;
+
+            //Creating a new webview when doing a new call
+            if (DmVideoPlayer == null)
+            {
+                DmVideoPlayer = NewWebView();
+
+                //setting cookies if needed
+                if (withCookiesParameters != null)
+                {
+                    //if in params we have the keys v1st or tg then we need to send it to the player in a cookie
+                    foreach (var cookie in withCookiesParameters)
+                    {
+                        //set cookie
+                        SetCookieInWebView(cookie.Key, cookie.Value);
+                    }
+                }
+
+                //Recieving the events the player is sending
+                DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
+
+                //creating http request message to send to the webview
+                HttpRequestMessage request = NewRequest("",  withParameters);
+
+                //doing call
+                DmVideoPlayer.NavigateWithHttpRequestMessage(request);
+            }
+        }
+
         /// Load a video with ID and optional OAuth token
         ///
         /// - Parameter videoId:        The video's XID
-        /// - Parameter accessToken:    An optional oauth token. If provided it will be passed as Bearer token to the player.
-        /// - Parameter withParameters: The list of configuration parameters that are passed to the player.
-        public void Load(string videoId, string accessToken = "", IDictionary<string, string> withParameters = null)
+        ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
+        ///   - withParameters:  The dictionary of configuration parameters that are passed to the player.
+        ///   - withCookiesParameters:     An optional array of HTTPCookie values that are passed to the player.
+        public void Load(string videoId, string accessToken = "", IDictionary<string, string> withParameters = null, IDictionary<string, string> withCookiesParameters = null)
         {
 
             this.VideoId = videoId;
             this.WithParameters = withParameters;
+            this.AccessToken = accessToken;
 
             //check base url
-            if (BaseUrl != null)
+            //if (BaseUrl != null)
             {
                 //Creating a new webview when doing a new call
                 if (DmVideoPlayer == null)
@@ -99,23 +151,13 @@ namespace DMVideoPlayer
                     DmVideoPlayer = NewWebView();
 
                     //setting cookies if needed
-                    if (withParameters != null)
+                    if (withCookiesParameters != null)
                     {
                         //if in params we have the keys v1st or tg then we need to send it to the player in a cookie
-                        if (withParameters.ContainsKey("v1st"))
+                        foreach (var cookie in withCookiesParameters)
                         {
                             //set cookie
-                            SetCookieInWebView("v1st", withParameters["v1st"]);
-                        }
-                        else if (withParameters.ContainsKey("ts"))
-                        {
-                            //set cookie
-                            SetCookieInWebView("ts", withParameters["ts"]);
-                        }
-                        else if (withParameters.ContainsKey("clsu"))
-                        {
-                            //set cookie
-                            SetCookieInWebView("clsu", withParameters["clsu"]);
+                            SetCookieInWebView(cookie.Key, cookie.Value);
                         }
                     }
 
@@ -123,13 +165,23 @@ namespace DMVideoPlayer
                     DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
 
                     //creating http request message to send to the webview
-                    HttpRequestMessage request = NewRequest(videoId, accessToken, withParameters);
+                    HttpRequestMessage request = NewRequest(videoId, withParameters);
 
                     //doing call
                     DmVideoPlayer.NavigateWithHttpRequestMessage(request);
                 }
                 else
-                    Load();
+                {
+                    if (ApiReady)
+                    {
+                        Load();
+                        PendingPlay = false;
+                    }
+                    else
+                    {
+                        PendingPlay = true;
+                    }
+                }
             }
         }
 
@@ -145,64 +197,106 @@ namespace DMVideoPlayer
         {
             DmWebViewMessage = e?.Value;
 
-            //switch (e?.Value.Contains)
-            //{
-            //    case "apiready":
-            //        {
-            //            ApiReady = true;
-            //            if (PendingPlay)
-            //            {
-            //                PendingPlay = false;
-            //                Load();
-            //            }
+            if (DmWebViewMessage !=null && !DmWebViewMessage.Contains("time"))
+            {
 
-            //            //Tracking.setPV5Info(map);
-            //            break;
-            //        }
-            //    case "ad_start":
-            //        {
-            //            ShowingAd = true;
-            //            break;
-            //        }
-            //    case "ad_end":
-            //        {
-            //            ShowingAd = false;
-            //            break;
-            //        }
-            //}
+
+                Debug.WriteLine(DmWebViewMessage);
+
+                var eventNames = getEventNames(e?.Value);
+
+                foreach (var name in eventNames)
+                {
+                    switch (name.Value)
+                    {
+                        case "apiready":
+                            {
+                                ApiReady = true;
+                                if (PendingPlay)
+                                {
+                                    PendingPlay = false;
+                                    Load();
+                                }
+
+                                //Tracking.setPV5Info(map);
+                                break;
+                            }
+                        case "ad_start":
+                            {
+                                ShowingAd = true;
+                                break;
+                            }
+                        case "ad_end":
+                            {
+                                ShowingAd = false;
+                                break;
+                            }
+                            //}
+                    }
+                }
+            }
+        }
+
+        private Dictionary<string, string> getEventNames(string DirtyEvent)
+        {
+            var queryParameters = new Dictionary<string, string>();
+            string[] querySegments = DirtyEvent.Split('&');
+            foreach (string segment in querySegments)
+            {
+                string[] parts = segment.Split('=');
+                if (parts.Length > 0)
+                {
+                    string key = WebUtility.UrlDecode(parts[0].Trim(new char[] { '?', ' ' }));
+                    string val = WebUtility.UrlDecode(parts[1].Trim());
+
+                    //making sure the key isnt present  
+                    if (!queryParameters.ContainsKey(key))
+                    {
+                        queryParameters.Add(key, val);
+                    }
+                }
+            }
+            return queryParameters;
         }
 
         private void Load()
         {
-            //init Environment Info
-            if (WithParameters != null
-                && WithParameters.ContainsKey("jsonEnvironmentInfo"))
+            if (WithParameters == null)
+                return;
+
+            if (WithParameters.ContainsKey("jsonEnvironmentInfo"))
             {
                 InitEnvironmentInfoVariables(WithParameters["jsonEnvironmentInfo"]);
             }
 
 
-            //mHasMetadata = false;
-            if (WithParameters != null &&
-                WithParameters.ContainsKey("loadedJsonData"))
+            if (WithParameters.ContainsKey("loadedJsonData"))
             {
+               // Pause();
                 CallPlayerMethod("load", VideoId, WithParameters["loadedJsonData"]);
             }
             else
             {
+              //  Pause();
                 CallPlayerMethod("load", VideoId);
             }
 
-            //if (IsHeroVideo)
-            //{
-            //    Mute();
-            //}
-            //else
-            //{
-            //    Unmute();
-            //}
+            if (WithParameters.ContainsKey("mute"))
+            {
+                if (WithParameters["mute"] == "true")
+                {
+                    Mute();
+                }
+                else
+                {
+                    Unmute();
+                }
+            }
         }
 
+        /// Set a player property
+        ///
+        /// - Parameter jsonData: The data value to set
         public void InitEnvironmentInfoVariables(string jsonData)
         {
             //PropData propData = new PropData();
@@ -213,13 +307,13 @@ namespace DMVideoPlayer
             CallPlayerMethod("setProp", "neon", jsonData);
         }
 
-        private HttpRequestMessage NewRequest(string videoId, string accessToken = "", IDictionary<string, string> parameters = null)
+        private HttpRequestMessage NewRequest(string videoId, IDictionary<string, string> parameters = null)
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
 
-            if (accessToken != "")
+            if (this.AccessToken != "")
             {
-                message.Headers.Add("Authorization", "Bearer " + accessToken);
+                message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
             }
             return message;
         }
@@ -256,7 +350,7 @@ namespace DMVideoPlayer
             }
 
             parameters["api"] = "nativeBridge";
-            //parameters["objc_sdk_version"] = version;
+            // parameters["objc_sdk_version"] = version;
             parameters["app"] = bundleIdentifier;
             //parameters["GK_PV5_ANTI_ADBLOCK"] = "0";
             parameters["GK_PV5_NEON"] = "1";
@@ -281,9 +375,17 @@ namespace DMVideoPlayer
 
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callingMethod);
+            Debug.WriteLine(callingMethod);
 
+            try
+            {
+                await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error : " + callingMethod);
+            }
 
-            await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
 
             //so sad
             //var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
@@ -294,11 +396,19 @@ namespace DMVideoPlayer
         // private async void CallEvalWebviewMethod(string callMethod)
         private async void CallEvalWebviewMethod(string callMethod)
         {
+            Debug.WriteLine(callMethod);
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callMethod);
 
+            try
+            {
+                await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            }
+            catch (Exception e)
+            {
+                //throw new Exception("Error : " + callMethod);
+            }
 
-            await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
 
 
             //var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
