@@ -9,6 +9,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
@@ -72,9 +73,9 @@ namespace DMVideoPlayer
             }
         }
 
-        private string _dmWebViewMessage;
+        private KeyValuePair<string, string> _dmWebViewMessage;
 
-        public string DmWebViewMessage
+        public KeyValuePair<string, string> DmWebViewMessage
         {
             get { return _dmWebViewMessage; }
             set
@@ -122,7 +123,7 @@ namespace DMVideoPlayer
                 DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
 
                 //creating http request message to send to the webview
-                HttpRequestMessage request = NewRequest("",  withParameters);
+                HttpRequestMessage request = NewRequest("", withParameters);
 
                 //doing call
                 DmVideoPlayer.NavigateWithHttpRequestMessage(request);
@@ -195,18 +196,14 @@ namespace DMVideoPlayer
 
         private void DmWebView_ScriptNotify(object sender, NotifyEventArgs e)
         {
-            DmWebViewMessage = e?.Value;
+            var eventNames = getEventNames(e?.Value);
 
-            if (DmWebViewMessage !=null && !DmWebViewMessage.Contains("time"))
+            if (eventNames != null)
             {
-
-
-                Debug.WriteLine(DmWebViewMessage);
-
-                var eventNames = getEventNames(e?.Value);
-
                 foreach (var name in eventNames)
                 {
+                    //Debug.WriteLine(name.ToString());
+
                     switch (name.Value)
                     {
                         case "apiready":
@@ -231,8 +228,9 @@ namespace DMVideoPlayer
                                 ShowingAd = false;
                                 break;
                             }
-                            //}
                     }
+
+                    DmWebViewMessage = name;
                 }
             }
         }
@@ -272,12 +270,12 @@ namespace DMVideoPlayer
 
             if (WithParameters.ContainsKey("loadedJsonData"))
             {
-               // Pause();
+                // Pause();
                 CallPlayerMethod("load", VideoId, WithParameters["loadedJsonData"]);
             }
             else
             {
-              //  Pause();
+                //  Pause();
                 CallPlayerMethod("load", VideoId);
             }
 
@@ -299,11 +297,6 @@ namespace DMVideoPlayer
         /// - Parameter jsonData: The data value to set
         public void InitEnvironmentInfoVariables(string jsonData)
         {
-            //PropData propData = new PropData();
-            //propData.info = new Tracking.EnvironmentInfo();
-            //propData.info.device = TDeviceInfo.get();
-            //propData.info.app = TAppInfo.get();
-            //propData.info.visitor = TVisitorInfo.create();
             CallPlayerMethod("setProp", "neon", jsonData);
         }
 
@@ -311,7 +304,7 @@ namespace DMVideoPlayer
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
 
-            if (this.AccessToken != "")
+            if (!string.IsNullOrEmpty(this.AccessToken))
             {
                 message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
             }
@@ -375,28 +368,30 @@ namespace DMVideoPlayer
 
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callingMethod);
-            Debug.WriteLine(callingMethod);
 
+            if (!callingMethod.Contains("mute"))
+            {
+                Debug.WriteLine(callingMethod);
+            }
+  
             try
             {
                 await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
             }
             catch (Exception e)
             {
-                throw new Exception("Error : " + callingMethod);
+                // throw new Exception("Error : " + callingMethod);
             }
-
-
-            //so sad
-            //var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
-            //if (invokeScriptAsync != null)
-            //    await invokeScriptAsync;
         }
 
         // private async void CallEvalWebviewMethod(string callMethod)
         private async void CallEvalWebviewMethod(string callMethod)
         {
-            Debug.WriteLine(callMethod);
+            if (!callMethod.Contains("mute"))
+            {
+                Debug.WriteLine(callMethod);
+            }
+
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callMethod);
 
@@ -408,12 +403,6 @@ namespace DMVideoPlayer
             {
                 //throw new Exception("Error : " + callMethod);
             }
-
-
-
-            //var invokeScriptAsync = DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
-            //if (invokeScriptAsync != null)
-            //    await invokeScriptAsync;
         }
 
         public async void CallPlayerMethod(string method, string param, string dataJson = null)
@@ -427,6 +416,7 @@ namespace DMVideoPlayer
             if (dataJson != null)
             {
                 builder.Append(",JSON.parse('" + dataJson + "')");
+                // builder.Append("," + dataJson + "");
             }
 
             builder.Append(')');
@@ -454,24 +444,33 @@ namespace DMVideoPlayer
         {
             Debug.Write("PLAYER", "play");
             NotifyPlayerApi("play");
+
+            if (IsHeroVideo)
+            {
+                Mute();
+            }
+            else
+            {
+                Unmute();
+            }
         }
 
         public void Pause()
         {
-            Debug.Write("PLAYER", "pause");
+            //Debug.Write("PLAYER", "pause");
             NotifyPlayerApi("pause");
         }
 
 
         public void Mute()
         {
-            Debug.Write("PLAYER", "MUTE");
+            //Debug.Write("PLAYER", "MUTE");
             NotifyPlayerApi("mute");
         }
 
         public void Unmute()
         {
-            Debug.Write("PLAYER", "unmute");
+            //Debug.Write("PLAYER", "unmute");
             NotifyPlayerApi("unmute");
         }
 
