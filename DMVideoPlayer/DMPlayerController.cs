@@ -18,8 +18,6 @@ using DMVideoPlayer.Annotations;
 
 namespace DMVideoPlayer
 {
-
-
     public class DMPlayerController : INotifyPropertyChanged
     {
 
@@ -325,9 +323,9 @@ namespace DMVideoPlayer
 
         private void SetCookieInWebView(string key, string value)
         {
-            Uri baseUri = new Uri(defaultUrl);
+            //Uri baseUri = new Uri(defaultUrl);
             Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
-            Windows.Web.Http.HttpCookie cookie = new Windows.Web.Http.HttpCookie(key, baseUri.Host, "/");
+            Windows.Web.Http.HttpCookie cookie = new Windows.Web.Http.HttpCookie(key, ".dailymotion.com", "/");
             cookie.Value = value;
             filter.CookieManager.SetCookie(cookie, false);
         }
@@ -369,10 +367,10 @@ namespace DMVideoPlayer
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callingMethod);
 
-            if (!callingMethod.Contains("mute"))
-            {
-                Debug.WriteLine(callingMethod);
-            }
+            // if (!callingMethod.Contains("mute"))
+            // {
+            //     Debug.WriteLine(callingMethod);
+            // }
   
             try
             {
