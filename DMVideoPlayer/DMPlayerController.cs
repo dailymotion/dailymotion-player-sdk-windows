@@ -21,7 +21,9 @@ namespace DMVideoPlayer
     public class DMPlayerController : INotifyPropertyChanged
     {
 
+        //  private static string defaultUrl = "https://stage-01.dailymotion.com";
         private static string defaultUrl = "https://www.dailymotion.com";
+
         private static bool defaultIsTapEnabled = true;
 
         private static string HockeyAppId = "6d380067c4d848ce863b232a1c5f10ae";
@@ -90,19 +92,46 @@ namespace DMVideoPlayer
         ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
         ///   - withParameters:  The dictionary of configuration parameters that are passed to the player.
         ///   - withCookiesParameters:     An optional array of HTTPCookie values that are passed to the player.
-        public void Init(string accessToken = "", IDictionary<string, string> withParameters = null, IDictionary<string, string> withCookiesParameters = null)
+        public void Init(string accessToken = "",
+            IDictionary<string, string> withParameters = null,
+            IDictionary<string, string> withCookiesParameters = null)
         {
-            //  self.baseUrl = baseUrl ?? DMPlayerViewController.defaultUrl
-            //super.init(nibName: nil, bundle: nil)
-            //webView = newWebView(cookies: cookies)
-            //view = webView
-            //let request = newRequest(parameters: parameters, accessToken: accessToken, cookies: cookies)
-            //webView.load(request)
-            //webView.navigationDelegate = self
             this.AccessToken = accessToken;
 
             //Creating a new webview when doing a new call
             if (DmVideoPlayer == null)
+            {
+                DmVideoPlayer = NewWebView();
+
+                //setting cookies if needed
+                if (withCookiesParameters != null)
+                {
+                    //if in params we have the keys v1st or tg then we need to send it to the player in a cookie
+                    foreach (var cookie in withCookiesParameters)
+                    {
+                        //set cookie
+                        SetCookieInWebView(cookie.Key, cookie.Value);
+                    }
+                }
+
+                //Recieving the events the player is sending
+                DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
+
+                //creating http request message to send to the webview
+                HttpRequestMessage request = NewRequest("", withParameters);
+
+                //doing call
+                DmVideoPlayer.NavigateWithHttpRequestMessage(request);
+            }
+        }
+
+        public void Reset(string accessToken = "",
+    IDictionary<string, string> withParameters = null,
+    IDictionary<string, string> withCookiesParameters = null)
+        {
+            this.AccessToken = accessToken;
+
+            //Creating a new webview when doing a new call
             {
                 DmVideoPlayer = NewWebView();
 
@@ -312,18 +341,32 @@ namespace DMVideoPlayer
         //Creating a new webview
         private WebView NewWebView()
         {
-            //var webView = new WebView(WebViewExecutionMode.SeparateThread);
             var webView = new WebView(WebViewExecutionMode.SameThread);
             webView.IsTapEnabled = IsTapEnabled;
-
+            webView.NavigationStarting += Wb_NavigationStarting;
             webView.Opacity = 1;
             return webView;
         }
 
+        //this fixes user agent issues
+        private void NavigateWithHeader(Uri uri)
+        {
+            var requestMsg = new Windows.Web.Http.HttpRequestMessage(HttpMethod.Get, uri);
+            requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+            DmVideoPlayer.NavigateWithHttpRequestMessage(requestMsg);
+
+            DmVideoPlayer.NavigationStarting += Wb_NavigationStarting;
+        }
+
+        private void Wb_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
+        {
+            DmVideoPlayer.NavigationStarting -= Wb_NavigationStarting;
+            args.Cancel = true;
+            NavigateWithHeader(args.Uri);
+        }
 
         private void SetCookieInWebView(string key, string value)
         {
-            //Uri baseUri = new Uri(defaultUrl);
             Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
             Windows.Web.Http.HttpCookie cookie = new Windows.Web.Http.HttpCookie(key, ".dailymotion.com", "/");
             cookie.Value = value;
@@ -367,11 +410,6 @@ namespace DMVideoPlayer
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(callingMethod);
 
-            // if (!callingMethod.Contains("mute"))
-            // {
-            //     Debug.WriteLine(callingMethod);
-            // }
-  
             try
             {
                 await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
@@ -471,6 +509,7 @@ namespace DMVideoPlayer
             //Debug.Write("PLAYER", "unmute");
             NotifyPlayerApi("unmute");
         }
+
 
         public void Volume(double value)
         {
