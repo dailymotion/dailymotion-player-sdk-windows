@@ -41,8 +41,8 @@ namespace DMVideoPlayer_Sample
         public MainPage()
         {
             this.InitializeComponent();
-            init();
-            Loaded += MainPage_Loaded;
+
+            //Loaded += MainPage_Loaded;
 
             //handling share example
             Windows.ApplicationModel.DataTransfer.DataTransferManager.GetForCurrentView().DataRequested += MainPage_DataRequested;
@@ -62,15 +62,90 @@ namespace DMVideoPlayer_Sample
         }
 
 
-        private void MainPage_Loaded(object sender, RoutedEventArgs e)
-        {
+        //private void MainPage_Loaded(object sender, RoutedEventArgs e)
+        //{
 
-            //With Params and will allow you to recieve dmevents
-            //rtl live
-            loadHtmlVideo("xl1km0");
+        //    //With Params and will allow you to recieve dmevents
+        //    //rtl live
+        //    loadHtmlVideo("xl1km0");
+        //}
+
+        private void Init()
+        {
+            var parameters = new Dictionary<string, string>();
+
+            parameters["autoplay"] = "true";
+            parameters["ui-logo"] = "false";
+            parameters["endscreen-enable"] = "false";
+            // parameters["chromeless"] = "true";
+            parameters["auto"] = "true";
+
+
+            parameters["controls"] = "1";
+
+            parameters["sharing-enable"] = "fullscreen_only";
+            parameters["fullscreen-enable"] = "fullscreen_only";
+            parameters["collections-enable"] = "fullscreen_only";
+            parameters["watchlater-enable"] = "fullscreen_only";
+            parameters["like-enable"] = "fullscreen_only";
+
+            parameters["GK_PV5_GLOBAL_TIMEOUT_EXTENDED"] = "true";
+
+            //init
+            dmPlayerController = new DMPlayerController();
+
+            var accessToken = "";// "myAccessToken";
+
+            //init the DMVideoPlayer
+            dmPlayerController.Init(accessToken, parameters);
+
+            if (!MyRootGrid.Children.Contains(dmPlayerController.DmVideoPlayer))
+            {
+                //adding DmVideoPlayer to the page
+                MyRootGrid.Children.Add(dmPlayerController.DmVideoPlayer);
+            }
+
+            dmPlayerController.OnDmWebViewMessageUpdated += DmPlayerController_OnDmWebViewMessageUpdated;
+        }
+        private void InitAndLoad()
+        {
+            var parameters = new Dictionary<string, string>();
+
+            parameters["autoplay"] = "true";
+            parameters["ui-logo"] = "false";
+            parameters["endscreen-enable"] = "false";
+            // parameters["chromeless"] = "true";
+            parameters["auto"] = "true";
+
+
+            parameters["controls"] = "1";
+
+            parameters["sharing-enable"] = "fullscreen_only";
+            parameters["fullscreen-enable"] = "fullscreen_only";
+            parameters["collections-enable"] = "fullscreen_only";
+            parameters["watchlater-enable"] = "fullscreen_only";
+            parameters["like-enable"] = "fullscreen_only";
+
+            parameters["GK_PV5_GLOBAL_TIMEOUT_EXTENDED"] = "true";
+
+            //init
+            dmPlayerController = new DMPlayerController();
+
+            var accessToken = "";// "myAccessToken";
+
+            //init the DMVideoPlayer
+            dmPlayerController.Load("xl1km0", accessToken, parameters);
+
+            if (!MyRootGrid.Children.Contains(dmPlayerController.DmVideoPlayer))
+            {
+                //adding DmVideoPlayer to the page
+                MyRootGrid.Children.Add(dmPlayerController.DmVideoPlayer);
+            }
+
+            dmPlayerController.OnDmWebViewMessageUpdated += DmPlayerController_OnDmWebViewMessageUpdated;
         }
 
-        private void init()
+        private void Reset()
         {
             var parameters = new Dictionary<string, string>();
 
@@ -104,7 +179,14 @@ namespace DMVideoPlayer_Sample
             var accessToken = "";// "myAccessToken";
 
             //init the DMVideoPlayer
-            dmPlayerController.Init(accessToken, parameters);
+            dmPlayerController.Reset(accessToken, parameters);
+
+            //removing player instance
+            if (MyRootGrid.Children.Contains(dmPlayerController.DmVideoPlayer))
+            {
+                MyRootGrid.Children.Remove(dmPlayerController.DmVideoPlayer);
+            }
+
 
             //adding DmVideoPlayer to the page
             MyRootGrid.Children.Add(dmPlayerController.DmVideoPlayer);
@@ -114,6 +196,8 @@ namespace DMVideoPlayer_Sample
             dmPlayerController.OnDmWebViewMessageUpdated += DmPlayerController_OnDmWebViewMessageUpdated;
         }
 
+
+
         private void loadHtmlVideo(string videoId)
         {
             var parameters = new Dictionary<string, string>();
@@ -121,19 +205,12 @@ namespace DMVideoPlayer_Sample
             parameters["fullscreen-action"] = "trigger_event";
             parameters["sharing-action"] = "trigger_event";
             parameters["autoplay"] = "true";
-            parameters["loadedJsonData"] = "json data loadedJsonData";
-            parameters["loadedJsonData"] = "json data jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo jsonEnvironmentInfo";
 
             var accessToken = "";// "myAccessToken";
 
             //init the DMVideoPlayer
             dmPlayerController.Load(videoId, accessToken, parameters);
 
-            //adding DmVideoPlayer to the page
-            //       MyRootGrid.Children.Add(dmPlayerController.DmVideoPlayer);
-            //MyWebview = dmPlayerController.DmVideoPlayer;
-
-            //dmPlayerController.OnDmWebViewMessageUpdated += DmPlayerController_OnDmWebViewMessageUpdated;
         }
         private void DmPlayerController_OnDmWebViewMessageUpdated()
         {
@@ -152,24 +229,17 @@ namespace DMVideoPlayer_Sample
 
         private void PauseButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
-            //dmPlayerController?.Pause();
-
-            dmPlayerController?.Mute();
+            dmPlayerController?.Pause();
         }
 
         private void Setting1ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             var parameters = new Dictionary<string, string>();
 
-            parameters["fullscreen-action"] = "trigger_event";
-            parameters["sharing-action"] = "trigger_event";
             parameters["autoplay"] = "true";
             parameters["ui-logo"] = "false";
             parameters["endscreen-enable"] = "false";
-            parameters["locale"] = "en";
             parameters["mute"] = "true";
-
-
 
             var accessToken = "";// "myAccessToken";
 
@@ -183,8 +253,7 @@ namespace DMVideoPlayer_Sample
         {
             var parameters = new Dictionary<string, string>();
 
-            parameters["fullscreen-action"] = "trigger_event";
-            parameters["sharing-action"] = "trigger_event";
+
             parameters["autoplay"] = "true";
             parameters["ui-logo"] = "false";
             parameters["endscreen-enable"] = "false";
@@ -204,6 +273,21 @@ namespace DMVideoPlayer_Sample
             // dmPlayerController.CallMethodeOnPlayer("player.setMuted(true)");
 
             dmPlayerController.Mute();
+        }
+
+        private void InitPlayer_click(object sender, RoutedEventArgs e)
+        {
+            Init();
+        }
+
+        private void InitAndPlayPlayer_click(object sender, RoutedEventArgs e)
+        {
+            InitAndLoad();
+        }
+
+        private void ResetPlayer_click(object sender, RoutedEventArgs e)
+        {
+            Reset();
         }
     }
 }

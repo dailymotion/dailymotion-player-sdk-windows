@@ -28,11 +28,12 @@ namespace DMVideoPlayer
 
         private static string HockeyAppId = "6d380067c4d848ce863b232a1c5f10ae";
         private static string version = "2.9.3";
-        private static string bundleIdentifier = "com.dailymotion.dailymotion-alpha";
+        private static string bundleIdentifier = "com.dailymotion.dailymotion";
         //private static string bundleIdentifier = "WindowsSDK";
         private static string eventName = "dmevent";
         private static string eventNameV2 = "event=";
         private static string pathPrefix = "/embed/";
+        private static string pathWithVideoPrefix = "/embed/video/";
         private static string messageHandlerEvent = "triggerEvent";
 
         public event Action OnDmWebViewMessageUpdated;
@@ -126,8 +127,8 @@ namespace DMVideoPlayer
         }
 
         public void Reset(string accessToken = "",
-    IDictionary<string, string> withParameters = null,
-    IDictionary<string, string> withCookiesParameters = null)
+                            IDictionary<string, string> withParameters = null,
+                            IDictionary<string, string> withCookiesParameters = null)
         {
             this.AccessToken = accessToken;
 
@@ -171,9 +172,10 @@ namespace DMVideoPlayer
             this.AccessToken = accessToken;
 
             //check base url
-            //if (BaseUrl != null)
+            if (BaseUrl != null)
             {
                 //Creating a new webview when doing a new call
+                //or using the JS to load the video if the player is already loaded
                 if (DmVideoPlayer == null)
                 {
                     DmVideoPlayer = NewWebView();
@@ -220,7 +222,9 @@ namespace DMVideoPlayer
         }
 
 
-
+        /// <summary>
+        /// Handles the events fired from the Webview and passes the information on
+        /// </summary>
         private void DmWebView_ScriptNotify(object sender, NotifyEventArgs e)
         {
             var eventNames = getEventNames(e?.Value);
@@ -262,10 +266,15 @@ namespace DMVideoPlayer
             }
         }
 
-        private Dictionary<string, string> getEventNames(string DirtyEvent)
+        /// <summary>
+        /// Transforms the merge information given from the player into a key value dictonary based information
+        /// </summary>
+        /// <param name="mergedEventNames"></param>
+        /// <returns></returns>
+        private Dictionary<string, string> getEventNames(string mergedEventNames)
         {
             var queryParameters = new Dictionary<string, string>();
-            string[] querySegments = DirtyEvent.Split('&');
+            string[] querySegments = mergedEventNames.Split('&');
             foreach (string segment in querySegments)
             {
                 string[] parts = segment.Split('=');
@@ -284,6 +293,10 @@ namespace DMVideoPlayer
             return queryParameters;
         }
 
+        /// <summary>
+        /// When the player is already loaded this allows to us to call on the JS methods of the player and thus allows to interact with it
+        /// Load allows us to start a video without having to requery a URL
+        /// </summary>
         private void Load()
         {
             if (WithParameters == null)
@@ -297,15 +310,14 @@ namespace DMVideoPlayer
 
             if (WithParameters.ContainsKey("loadedJsonData"))
             {
-                // Pause();
                 CallPlayerMethod("load", VideoId, WithParameters["loadedJsonData"]);
             }
             else
             {
-                //  Pause();
                 CallPlayerMethod("load", VideoId);
             }
 
+            //check to see if we wish to mute or not the video
             if (WithParameters.ContainsKey("mute"))
             {
                 if (WithParameters["mute"] == "true")
@@ -319,14 +331,19 @@ namespace DMVideoPlayer
             }
         }
 
-        /// Set a player property
-        ///
+        /// Set a player property, for Dailymotion use only
         /// - Parameter jsonData: The data value to set
         public void InitEnvironmentInfoVariables(string jsonData)
         {
             CallPlayerMethod("setProp", "neon", jsonData);
         }
 
+        /// <summary>
+        /// Creates the http url
+        /// </summary>
+        /// <param name="videoId"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
         private HttpRequestMessage NewRequest(string videoId, IDictionary<string, string> parameters = null)
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
@@ -353,6 +370,7 @@ namespace DMVideoPlayer
         {
             var requestMsg = new Windows.Web.Http.HttpRequestMessage(HttpMethod.Get, uri);
             requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+            // requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
             DmVideoPlayer.NavigateWithHttpRequestMessage(requestMsg);
 
             DmVideoPlayer.NavigationStarting += Wb_NavigationStarting;
@@ -373,10 +391,17 @@ namespace DMVideoPlayer
             filter.CookieManager.SetCookie(cookie, false);
         }
 
-
+        /// <summary>
+        /// Creates a Url with a video id or not depending if we are loading the JS player first or just doing a http call with the video ids
+        /// </summary>
+        /// <param name="videoId"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
         private Uri Url(string videoId, IDictionary<string, string> parameters = null)
         {
-            var components = String.Concat(BaseUrl, pathPrefix, videoId);
+            var components = videoId != ""
+                ? String.Concat(BaseUrl, pathWithVideoPrefix, videoId)
+                : String.Concat(BaseUrl, pathPrefix, videoId);
 
             if (parameters == null)
             {
@@ -397,12 +422,24 @@ namespace DMVideoPlayer
             return new Uri(builder.ToString());
         }
 
+        /// <summary>
+        /// show the player controls depending on the bool
+        /// </summary>
+        /// <param name="show"></param>
         public void ToggleControls(bool show)
         {
             var hasControls = show ? "1" : "0";
-            NotifyPlayerApi(method: "controls", argument: hasControls);
+            //NotifyPlayerApi(method: "controls", argument: hasControls);
+
+            CallEvalWebviewMethod(string.Format("player.controls = {0}", hasControls));
+
         }
 
+        /// <summary>
+        /// Sends a command to the player, for example seek/pause/play
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="argument"></param>
         private async void NotifyPlayerApi(string method, string argument = null)
         {
             string callingMethod = string.Format("player.api('{0}')", method);
@@ -420,7 +457,7 @@ namespace DMVideoPlayer
             }
         }
 
-        // private async void CallEvalWebviewMethod(string callMethod)
+       
         private async void CallEvalWebviewMethod(string callMethod)
         {
             if (!callMethod.Contains("mute"))
@@ -441,6 +478,12 @@ namespace DMVideoPlayer
             }
         }
 
+        /// <summary>
+        /// Sends params to the player
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="param"></param>
+        /// <param name="dataJson"></param>
         public async void CallPlayerMethod(string method, string param, string dataJson = null)
         {
             StringBuilder builder = new StringBuilder();
@@ -497,7 +540,6 @@ namespace DMVideoPlayer
             NotifyPlayerApi("pause");
         }
 
-
         public void Mute()
         {
             //Debug.Write("PLAYER", "MUTE");
@@ -520,15 +562,12 @@ namespace DMVideoPlayer
             }
         }
 
-
-
         public void Seek(int seconds)
         {
             //player.seek(30);
             CallEvalWebviewMethod(string.Format("player.seek({0})", seconds));
             //NotifyPlayerApi(method: "seek", argument: "\(to)");
         }
-
 
         public event PropertyChangedEventHandler PropertyChanged;
 

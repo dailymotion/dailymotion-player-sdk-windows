@@ -10,16 +10,65 @@
 
     <StackPanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-        <Button Click="PlayButtonBase_OnClick" Content="Play" />
-        <Button Click="PauseButtonBase_OnClick" Content="Pause" />
-        <Button Click="mute_click" Content="Mute" />
-        <Button Click="Setting1ButtonBase_OnClick" Content="load player setting 1" />
-        <Button Click="Setting2ButtonBase_OnClick" Content="load player  no controls" />
+
+
 
         <Grid
             x:Name="MyRootGrid"
             Width="450"
             Height="350"
             Background="Red" />
+
+
+        <Grid Background="LightGray">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="400" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+
+                <Button
+                    Margin="5"
+                    Click="InitPlayer_click"
+                    Content="Init Player dont start playing" />
+
+                <Button
+                    Margin="5"
+                    Click="ResetPlayer_click"
+                    Content="Reset Player" />
+
+                <Button
+                    Margin="5"
+                    Click="InitAndPlayPlayer_click"
+                    Content="Init Player and play" />
+
+
+
+                <Button
+                    Margin="5"
+                    Click="Setting1ButtonBase_OnClick"
+                    Content="load player setting 1" />
+                <Button
+                    Margin="5"
+                    Click="Setting2ButtonBase_OnClick"
+                    Content="load player no controls" />
+
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+                <Button
+                    Margin="5"
+                    Click="PlayButtonBase_OnClick"
+                    Content="Play" />
+                <Button
+                    Margin="5"
+                    Click="PauseButtonBase_OnClick"
+                    Content="Pause" />
+                <Button
+                    Margin="5"
+                    Click="mute_click"
+                    Content="Mute video" />
+            </StackPanel>
+        </Grid>
+
     </StackPanel>
 </Page>
