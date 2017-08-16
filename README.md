@@ -1,16 +1,16 @@
-#Dailymotion Player SDK for Windows UWP
+# Dailymotion Player SDK for Windows UWP
 
 This repository contains the official open source .NET SDK that allows you to embed Dailymotion Videos in your UWP application.
 
 For a full documentation of the Player API, see [https://developer.dailymotion.com/player](https://developer.dailymotion.com/player#player-parameters)
 
-##Installation
+## Installation
 
-###Manually
+### Manually
 
 Just add the Release Lib `DMVideoPlayer.dll` to your project.
 
-##Usage
+## Usage
 
 Check out the repository and open `Dailymotion_VideoPlayer_Sample.sln` for a working example of how to embed the Dailymotion Player into your app.
 
@@ -34,11 +34,11 @@ Screenshot:
 ![http://i.imgur.com/OgKljKF.png](http://i.imgur.com/OgKljKF.png)
 
 
- ###Feedback
+ ### Feedback
 
 We are relying on the [GitHub issues tracker](issues) for feedback. File bugs or other issues http://github.com/dailymotion/dailymotion-player-sdk-windows/issues
 
-###TODO List
+### TODO List
 
 Here is what is coming in the next months:
 
