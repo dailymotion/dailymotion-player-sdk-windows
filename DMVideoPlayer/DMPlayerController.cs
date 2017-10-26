@@ -371,6 +371,12 @@ namespace DMVideoPlayer
             var requestMsg = new Windows.Web.Http.HttpRequestMessage(HttpMethod.Get, uri);
             requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
             // requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
+
+            if (!string.IsNullOrEmpty(this.AccessToken))
+            {
+                requestMsg.Headers.Add("Authorization", "Bearer " + this.AccessToken);
+            }
+
             DmVideoPlayer.NavigateWithHttpRequestMessage(requestMsg);
 
             DmVideoPlayer.NavigationStarting += Wb_NavigationStarting;
