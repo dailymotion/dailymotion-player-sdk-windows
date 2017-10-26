@@ -115,6 +115,15 @@ namespace DMVideoPlayer
                     }
                 }
 
+
+                if (!string.IsNullOrEmpty(this.AccessToken))
+                {
+                    //cookie.
+                    //builder.Append(String.Format("&{0}={1}", "access_token", this.AccessToken));
+                    SetCookieInWebView("access_token", this.AccessToken);
+                    //message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
+                }
+
                 //Recieving the events the player is sending
                 DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
 
@@ -145,6 +154,14 @@ namespace DMVideoPlayer
                         //set cookie
                         SetCookieInWebView(cookie.Key, cookie.Value);
                     }
+                }
+
+                if (!string.IsNullOrEmpty(this.AccessToken))
+                {
+                    //cookie.
+                    //builder.Append(String.Format("&{0}={1}", "access_token", this.AccessToken));
+                    SetCookieInWebView("access_token", this.AccessToken);
+                    //message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
                 }
 
                 //Recieving the events the player is sending
@@ -347,11 +364,14 @@ namespace DMVideoPlayer
         private HttpRequestMessage NewRequest(string videoId, IDictionary<string, string> parameters = null)
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
+            message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
 
-            if (!string.IsNullOrEmpty(this.AccessToken))
-            {
-                message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
-            }
+            //creates ads issues
+            //if (!string.IsNullOrEmpty(this.AccessToken))
+            //{
+            //    //adding a access token in the header will break the ads...
+            //    //message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
+            //}
             return message;
         }
 
@@ -360,7 +380,7 @@ namespace DMVideoPlayer
         {
             var webView = new WebView(WebViewExecutionMode.SameThread);
             webView.IsTapEnabled = IsTapEnabled;
-            webView.NavigationStarting += Wb_NavigationStarting;
+            //webView.NavigationStarting += Wb_NavigationStarting;
             webView.Opacity = 1;
             return webView;
         }
@@ -370,30 +390,32 @@ namespace DMVideoPlayer
         {
             var requestMsg = new Windows.Web.Http.HttpRequestMessage(HttpMethod.Get, uri);
             requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+
+            //User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; WebView/3.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299
+            //User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063
             // requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
 
-            if (!string.IsNullOrEmpty(this.AccessToken))
-            {
-                requestMsg.Headers.Add("Authorization", "Bearer " + this.AccessToken);
-            }
+            //if (!string.IsNullOrEmpty(this.AccessToken))
+            //{
+            //    requestMsg.Headers.Add("Authorization", "Bearer " + this.AccessToken);
+            //}
 
             DmVideoPlayer.NavigateWithHttpRequestMessage(requestMsg);
-
-            DmVideoPlayer.NavigationStarting += Wb_NavigationStarting;
         }
 
-        private void Wb_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
-        {
-            DmVideoPlayer.NavigationStarting -= Wb_NavigationStarting;
-            args.Cancel = true;
-            NavigateWithHeader(args.Uri);
-        }
+        //private void Wb_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
+        //{
+        //    DmVideoPlayer.NavigationStarting -= Wb_NavigationStarting;
+        //    args.Cancel = true;
+        //    NavigateWithHeader(args.Uri);
+        //}
 
         private void SetCookieInWebView(string key, string value)
         {
             Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
             Windows.Web.Http.HttpCookie cookie = new Windows.Web.Http.HttpCookie(key, ".dailymotion.com", "/");
             cookie.Value = value;
+
             filter.CookieManager.SetCookie(cookie, false);
         }
 
@@ -463,7 +485,7 @@ namespace DMVideoPlayer
             }
         }
 
-       
+
         private async void CallEvalWebviewMethod(string callMethod)
         {
             if (!callMethod.Contains("mute"))
