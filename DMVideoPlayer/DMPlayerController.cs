@@ -365,13 +365,6 @@ namespace DMVideoPlayer
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
             message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
-
-            //creates ads issues
-            //if (!string.IsNullOrEmpty(this.AccessToken))
-            //{
-            //    //adding a access token in the header will break the ads...
-            //    //message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
-            //}
             return message;
         }
 
@@ -384,31 +377,6 @@ namespace DMVideoPlayer
             webView.Opacity = 1;
             return webView;
         }
-
-        //this fixes user agent issues
-        private void NavigateWithHeader(Uri uri)
-        {
-            var requestMsg = new Windows.Web.Http.HttpRequestMessage(HttpMethod.Get, uri);
-            requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
-
-            //User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; WebView/3.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 Edge/16.16299
-            //User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063
-            // requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
-
-            //if (!string.IsNullOrEmpty(this.AccessToken))
-            //{
-            //    requestMsg.Headers.Add("Authorization", "Bearer " + this.AccessToken);
-            //}
-
-            DmVideoPlayer.NavigateWithHttpRequestMessage(requestMsg);
-        }
-
-        //private void Wb_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
-        //{
-        //    DmVideoPlayer.NavigationStarting -= Wb_NavigationStarting;
-        //    args.Cancel = true;
-        //    NavigateWithHeader(args.Uri);
-        //}
 
         private void SetCookieInWebView(string key, string value)
         {
