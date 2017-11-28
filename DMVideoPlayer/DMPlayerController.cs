@@ -61,6 +61,22 @@ namespace DMVideoPlayer
             set { _isTapEnabled = value; }
         }
 
+        private bool _isXbox = false;
+
+        public bool IsXbox
+        {
+            get { return _isXbox; }
+            set { _isXbox = value; }
+        }
+
+        private bool _isLogged = false;
+
+        public bool IsLogged
+        {
+            get { return _isLogged; }
+            set { _isLogged = value; }
+        }
+
         private WebView _dmVideoPlayer;
 
         public WebView DmVideoPlayer
@@ -115,13 +131,12 @@ namespace DMVideoPlayer
                     }
                 }
 
-
-                if (!string.IsNullOrEmpty(this.AccessToken))
+                //////set access token
+                if (IsXbox == false && !string.IsNullOrEmpty(this.AccessToken))
                 {
-                    //cookie.
-                    //builder.Append(String.Format("&{0}={1}", "access_token", this.AccessToken));
-                    SetCookieInWebView("access_token", this.AccessToken);
-                    //message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
+                    //when user is not logged access token must be passed as a client_token and when 
+                    //user logged as a access_token
+                    SetCookieInWebView(IsLogged ? "access_token" : "client_token", this.AccessToken);
                 }
 
                 //Recieving the events the player is sending
@@ -135,44 +150,21 @@ namespace DMVideoPlayer
             }
         }
 
+        /// Reset the player with a new instance of the player
+        /// - Parameters:
+        ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
+        ///   - withParameters:  The dictionary of configuration parameters that are passed to the player.
+        ///   - withCookiesParameters:     An optional array of HTTPCookie values that are passed to the player.
+
         public void Reset(string accessToken = "",
                             IDictionary<string, string> withParameters = null,
                             IDictionary<string, string> withCookiesParameters = null)
         {
-            this.AccessToken = accessToken;
+            //clear
+            DmVideoPlayer = null;
 
-            //Creating a new webview when doing a new call
-            {
-                DmVideoPlayer = NewWebView();
-
-                //setting cookies if needed
-                if (withCookiesParameters != null)
-                {
-                    //if in params we have the keys v1st or tg then we need to send it to the player in a cookie
-                    foreach (var cookie in withCookiesParameters)
-                    {
-                        //set cookie
-                        SetCookieInWebView(cookie.Key, cookie.Value);
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(this.AccessToken))
-                {
-                    //cookie.
-                    //builder.Append(String.Format("&{0}={1}", "access_token", this.AccessToken));
-                    SetCookieInWebView("access_token", this.AccessToken);
-                    //message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
-                }
-
-                //Recieving the events the player is sending
-                DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
-
-                //creating http request message to send to the webview
-                HttpRequestMessage request = NewRequest("", withParameters);
-
-                //doing call
-                DmVideoPlayer.NavigateWithHttpRequestMessage(request);
-            }
+            //init player
+            Init(accessToken, withParameters, withCookiesParameters);
         }
 
         /// Load a video with ID and optional OAuth token
@@ -195,27 +187,8 @@ namespace DMVideoPlayer
                 //or using the JS to load the video if the player is already loaded
                 if (DmVideoPlayer == null)
                 {
-                    DmVideoPlayer = NewWebView();
-
-                    //setting cookies if needed
-                    if (withCookiesParameters != null)
-                    {
-                        //if in params we have the keys v1st or tg then we need to send it to the player in a cookie
-                        foreach (var cookie in withCookiesParameters)
-                        {
-                            //set cookie
-                            SetCookieInWebView(cookie.Key, cookie.Value);
-                        }
-                    }
-
-                    //Recieving the events the player is sending
-                    DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
-
-                    //creating http request message to send to the webview
-                    HttpRequestMessage request = NewRequest(videoId, withParameters);
-
-                    //doing call
-                    DmVideoPlayer.NavigateWithHttpRequestMessage(request);
+                    //init webview with cookies
+                    Init(accessToken, withParameters, withCookiesParameters);
                 }
                 else
                 {
@@ -323,6 +296,10 @@ namespace DMVideoPlayer
             {
                 InitEnvironmentInfoVariables(WithParameters["jsonEnvironmentInfo"]);
             }
+            else
+            {
+                //set param for partners
+            }
 
 
             if (WithParameters.ContainsKey("loadedJsonData"))
@@ -365,6 +342,12 @@ namespace DMVideoPlayer
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
             message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+
+            if (IsXbox && !string.IsNullOrEmpty(this.AccessToken))
+            {
+                message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
+            }
+
             return message;
         }
 
@@ -377,6 +360,24 @@ namespace DMVideoPlayer
             webView.Opacity = 1;
             return webView;
         }
+
+        //old code
+        //private void NavigateWithHeader(Uri uri)
+        //{
+        //    var requestMsg = new Windows.Web.Http.HttpRequestMessage(HttpMethod.Get, uri);
+        //    requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+        //    DmVideoPlayer.NavigateWithHttpRequestMessage(requestMsg);
+
+        //    DmVideoPlayer.NavigationStarting += Wb_NavigationStarting;
+        //}
+
+        //private void Wb_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
+        //{
+        //    DmVideoPlayer.NavigationStarting -= Wb_NavigationStarting;
+        //    args.Cancel = true;
+        //    NavigateWithHeader(args.Uri);
+        //}
+
 
         private void SetCookieInWebView(string key, string value)
         {
