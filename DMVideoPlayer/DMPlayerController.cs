@@ -565,10 +565,10 @@ namespace DMVideoPlayer
             CallEvalWebviewMethod(string.Format("player.seek({0})", seconds));
             //NotifyPlayerApi(method: "seek", argument: "\(to)");
         }
-        public void SetQuality(Qualities videoQuality)
+        public void setQuality(Qualities videoQuality)
         {
             //player.setQuality('720');
-            CallEvalWebviewMethod(string.Format("player.setQuality({0})", videoQuality));
+            CallEvalWebviewMethod(string.Format("player.setQuality({0})", (int)videoQuality));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
