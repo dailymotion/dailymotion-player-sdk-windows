@@ -206,6 +206,10 @@ namespace DMVideoPlayer_Sample
             parameters["sharing-action"] = "trigger_event";
             parameters["autoplay"] = "true";
 
+			//this will allow the player to auto next to the next related video
+			parameters["queue-enable"] = "1";
+
+
             var accessToken = "";// "myAccessToken";
 
             //init the DMVideoPlayer

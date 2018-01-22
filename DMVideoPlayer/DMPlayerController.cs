@@ -14,7 +14,7 @@ using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
 using DMVideoPlayer.Annotations;
-
+using DMVideoPlayer.Models.Enums;
 
 namespace DMVideoPlayer
 {
@@ -564,6 +564,11 @@ namespace DMVideoPlayer
             //player.seek(30);
             CallEvalWebviewMethod(string.Format("player.seek({0})", seconds));
             //NotifyPlayerApi(method: "seek", argument: "\(to)");
+        }
+        public void SetQuality(Qualities videoQuality)
+        {
+            //player.setQuality('720');
+            CallEvalWebviewMethod(string.Format("player.setQuality({0})", videoQuality));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
