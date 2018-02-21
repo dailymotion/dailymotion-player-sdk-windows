@@ -162,7 +162,7 @@ namespace DMVideoPlayer_Sample
             // parameters["chromeless"] = "true";
             parameters["auto"] = "true";
 
-
+            parameters["quality"] = "2160";
             parameters["controls"] = "1";
 
             parameters["sharing-enable"] = "fullscreen_only";
@@ -244,7 +244,7 @@ namespace DMVideoPlayer_Sample
             parameters["ui-logo"] = "false";
             parameters["endscreen-enable"] = "false";
             parameters["mute"] = "true";
-
+            parameters["quality"] = "2160";
             var accessToken = "";// "myAccessToken";
 
             //init the DMVideoPlayer

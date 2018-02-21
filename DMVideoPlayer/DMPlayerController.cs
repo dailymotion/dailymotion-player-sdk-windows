@@ -568,7 +568,7 @@ namespace DMVideoPlayer
         public void setQuality(Qualities videoQuality)
         {
             //player.setQuality('720');
-            CallEvalWebviewMethod(string.Format("player.setQuality({0})", (int)videoQuality));
+            CallEvalWebviewMethod(string.Format("player.setQuality('{0}')", (int)videoQuality));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
