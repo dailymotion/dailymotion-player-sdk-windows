@@ -29,6 +29,7 @@ namespace DMVideoPlayer_Sample
         public App()
         {
             this.InitializeComponent();
+            //bool result = Windows.UI.ViewManagement.ApplicationViewScaling.TrySetDisableLayoutScaling(true);
             this.Suspending += OnSuspending;
         }
 

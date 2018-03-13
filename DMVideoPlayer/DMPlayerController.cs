@@ -21,7 +21,7 @@ namespace DMVideoPlayer
     public class DMPlayerController : INotifyPropertyChanged
     {
 
-        //  private static string defaultUrl = "https://stage-01.dailymotion.com";
+        private static string defaultUrlStage = "https://stage-01.dailymotion.com";
         private static string defaultUrl = "https://www.dailymotion.com";
 
         private static bool defaultIsTapEnabled = true;
@@ -341,8 +341,17 @@ namespace DMVideoPlayer
         private HttpRequestMessage NewRequest(string videoId, IDictionary<string, string> parameters = null)
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
-            message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
 
+            //Headers
+            if(IsXbox)
+            {
+                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/16.16299");
+            }
+            else
+            {
+                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+            }
+            
             if (IsXbox && !string.IsNullOrEmpty(this.AccessToken))
             {
                 message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
@@ -569,6 +578,12 @@ namespace DMVideoPlayer
         {
             //player.setQuality('720');
             CallEvalWebviewMethod(string.Format("player.setQuality('{0}')", (int)videoQuality));
+        }
+
+        public void setFulScreen(bool isFullScreen)
+        {
+            //player.setQuality('720');
+            CallEvalWebviewMethod(string.Format("player.setFullscreen({0})", isFullScreen));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

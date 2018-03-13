@@ -16,6 +16,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using DMVideoPlayer;
 using Newtonsoft.Json;
+using Windows.UI.ViewManagement;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -42,7 +43,7 @@ namespace DMVideoPlayer_Sample
         {
             this.InitializeComponent();
 
-            //Loaded += MainPage_Loaded;
+            Loaded += MainPage_Loaded;
 
             //handling share example
             Windows.ApplicationModel.DataTransfer.DataTransferManager.GetForCurrentView().DataRequested += MainPage_DataRequested;
@@ -62,33 +63,63 @@ namespace DMVideoPlayer_Sample
         }
 
 
-        //private void MainPage_Loaded(object sender, RoutedEventArgs e)
-        //{
+        private void MainPage_Loaded(object sender, RoutedEventArgs e)
+        {
 
-        //    //With Params and will allow you to recieve dmevents
-        //    //rtl live
-        //    loadHtmlVideo("xl1km0");
-        //}
+            //WebView wv = new WebView();
+            //wv.Navigate(new Uri("https://stage-01.dailymotion.com/cdn/manifest/video/x5mscur.m3u8?auth=1519329924-2690-tqsr13jv-e8d6f14db61c2d27a17ca70a1d4e8a9e"));
+
+
+            //MyRootGrid.Children.Add(wv);
+
+            Init();
+            //With Params and will allow you to recieve dmevents
+            //JO Video
+            //loadHtmlVideo("x6ez4x0");
+            //loadHtmlVideo("x6f0xd3");
+
+            //imagine dragons
+              loadHtmlVideo("x5mscur");
+
+
+            //loadHtmlVideo("x5793u6");
+
+            var size = GetActualSize();
+
+            MyRootGrid.Width = size.Width - 90;
+            MyRootGrid.Height = size.Height - 90;
+        }
 
         private void Init()
         {
             var parameters = new Dictionary<string, string>();
 
+            parameters["fullscreen-action"] = "trigger_event";
+
+            parameters["sharing-action"] = "trigger_event";
+            parameters["like-action"] = "trigger_event";
+            parameters["collections-action"] = "trigger_event";
+            parameters["watchlater-action"] = "trigger_event";
+
             parameters["autoplay"] = "true";
-            parameters["ui-logo"] = "false";
+            parameters["ui-logo"] = "0";
             parameters["endscreen-enable"] = "false";
             // parameters["chromeless"] = "true";
             parameters["auto"] = "true";
 
+            
+                parameters["controls"] = "1";
 
-            parameters["controls"] = "1";
+                parameters["sharing-enable"] = "false";
+                parameters["fullscreen-enable"] = "fullscreen_only";
+                parameters["collections-enable"] = "false";
+                parameters["watchlater-enable"] = "false";
+                parameters["like-enable"] = "false";
+           
 
-            parameters["sharing-enable"] = "fullscreen_only";
-            parameters["fullscreen-enable"] = "fullscreen_only";
-            parameters["collections-enable"] = "fullscreen_only";
-            parameters["watchlater-enable"] = "fullscreen_only";
-            parameters["like-enable"] = "fullscreen_only";
-
+            parameters["quality"] = "2160";
+            //parameters["quality"] = "1080";
+            //parametersCookies["clsu"] = "1";
             parameters["GK_PV5_GLOBAL_TIMEOUT_EXTENDED"] = "true";
 
             //init
@@ -116,6 +147,7 @@ namespace DMVideoPlayer_Sample
             parameters["endscreen-enable"] = "false";
             // parameters["chromeless"] = "true";
             parameters["auto"] = "true";
+            parameters["mse"] = "0";
 
 
             parameters["controls"] = "1";
@@ -207,7 +239,8 @@ namespace DMVideoPlayer_Sample
             parameters["autoplay"] = "true";
 
 			//this will allow the player to auto next to the next related video
-			parameters["queue-enable"] = "1";
+			parameters["queue-enable"] = "false";
+			parameters["queue-enable"] = "false";
 
 
             var accessToken = "";// "myAccessToken";
@@ -218,12 +251,55 @@ namespace DMVideoPlayer_Sample
         }
         private void DmPlayerController_OnDmWebViewMessageUpdated()
         {
-            Debug.WriteLine(dmPlayerController.DmWebViewMessage);
+            if (!dmPlayerController.DmWebViewMessage.Key.Contains("time")
+                && !dmPlayerController.DmWebViewMessage.Value.Contains("time")
+                && !dmPlayerController.DmWebViewMessage.Key.Contains("progress")
+                && !dmPlayerController.DmWebViewMessage.Value.Contains("progress")
+
+                )
+            {
+                Debug.WriteLine(dmPlayerController.DmWebViewMessage);
+            }
 
             //if (dmPlayerController.DmWebViewMessage.Contains("share_requested"))
             //{
             //    Windows.ApplicationModel.DataTransfer.DataTransferManager.ShowShareUI();
             //}
+
+            if (dmPlayerController.DmWebViewMessage.Value.Equals("fullscreen_toggle_requested"))
+            {
+                DmPlayer_FullscreenToggle();
+            }
+        }
+
+
+        private void DmPlayer_FullscreenToggle()
+        {
+            ApplicationView view = ApplicationView.GetForCurrentView();
+
+            //if (view.IsFullScreenMode)
+            //{
+            //    view.ExitFullScreenMode();
+                
+            //}
+            //else
+            //{
+                if (view.TryEnterFullScreenMode())
+                {
+                    var size = GetActualSize();
+
+                    MyRootGrid.Width = size.Width-90;
+                    MyRootGrid.Height = size.Height-90;
+                 
+                }
+            //}
+
+
+
+        }
+        public static Size GetActualSize()
+        {
+            return new Size(Window.Current.Bounds.Width, Window.Current.Bounds.Height);
         }
 
         private void PlayButtonBase_OnClick(object sender, RoutedEventArgs e)
