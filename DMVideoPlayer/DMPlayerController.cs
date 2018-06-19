@@ -28,7 +28,7 @@ namespace DMVideoPlayer
 
         private static string HockeyAppId = "6d380067c4d848ce863b232a1c5f10ae";
         private static string version = "2.9.3";
-        private static string bundleIdentifier = "com.dailymotion.dailymotion";
+        //private static string bundleIdentifier = "com.dailymotion.dailymotion";
         //private static string bundleIdentifier = "WindowsSDK";
         private static string eventName = "dmevent";
         private static string eventNameV2 = "event=";
@@ -39,7 +39,9 @@ namespace DMVideoPlayer
         public event Action OnDmWebViewMessageUpdated;
 
         private string _baseUrl; // URL!
+        private string _appName; // URL!
         public bool ApiReady { get; set; }
+        public bool HasPlayerError { get; set; }
         public string VideoId { get; set; }
         public string AccessToken { get; set; }
         // public string loadedJsonData { get; set; }
@@ -52,8 +54,13 @@ namespace DMVideoPlayer
             get { return _baseUrl ?? defaultUrl; }
             set { _baseUrl = value; }
         }
+        public string AppName
+        {
+            get { return _appName; }
+            set { _appName = value; }
+        }
 
-        private bool? _isTapEnabled; // URL!
+        private bool? _isTapEnabled;
 
         public bool IsTapEnabled
         {
@@ -114,7 +121,7 @@ namespace DMVideoPlayer
             IDictionary<string, string> withCookiesParameters = null)
         {
             this.AccessToken = accessToken;
-
+            HasPlayerError = false;
             //Creating a new webview when doing a new call
             if (DmVideoPlayer == null)
             {
@@ -175,7 +182,7 @@ namespace DMVideoPlayer
         ///   - withCookiesParameters:     An optional array of HTTPCookie values that are passed to the player.
         public void Load(string videoId, string accessToken = "", IDictionary<string, string> withParameters = null, IDictionary<string, string> withCookiesParameters = null)
         {
-
+            HasPlayerError = false;
             this.VideoId = videoId;
             this.WithParameters = withParameters;
             this.AccessToken = accessToken;
@@ -415,9 +422,9 @@ namespace DMVideoPlayer
             }
 
             parameters["api"] = "nativeBridge";
-            // parameters["objc_sdk_version"] = version;
-            parameters["app"] = bundleIdentifier;
-            //parameters["GK_PV5_ANTI_ADBLOCK"] = "0";
+            //// parameters["objc_sdk_version"] = version;
+            parameters["app"] = AppName;
+            ////parameters["GK_PV5_ANTI_ADBLOCK"] = "0";
             parameters["GK_PV5_NEON"] = "1";
 
             var builder = new StringBuilder(components);
@@ -459,7 +466,8 @@ namespace DMVideoPlayer
             }
             catch (Exception e)
             {
-                // throw new Exception("Error : " + callingMethod);
+                HasPlayerError = true;
+                throw new Exception("Error : " + callingMethod);
             }
         }
 
@@ -475,12 +483,13 @@ namespace DMVideoPlayer
             callingJsMethod.Add(callMethod);
 
             try
-            {
+            {                 
                 await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
             }
             catch (Exception e)
             {
-                //throw new Exception("Error : " + callMethod);
+                HasPlayerError = true;
+                throw new Exception("Error : " + callMethod);
             }
         }
 
