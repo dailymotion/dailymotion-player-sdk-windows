@@ -15,6 +15,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
 using DMVideoPlayer.Annotations;
 using DMVideoPlayer.Models.Enums;
+using DMVideoPlayer.Exceptions;
 
 namespace DMVideoPlayer
 {
@@ -35,6 +36,10 @@ namespace DMVideoPlayer
         private static string pathPrefix = "/embed/";
         private static string pathWithVideoPrefix = "/embed/video/";
         private static string messageHandlerEvent = "triggerEvent";
+
+        public static string COMMAND_NOTIFY_LIKECHANGED = "notifyLikeChanged";
+        public static string COMMAND_NOTIFY_WATCHLATERCHANGED = "notifyWatchLaterChanged";
+        public static string COMMAND_NOTIFYFULLSCREENCHANGED = "notifyFullscreenChanged";
 
         public event Action OnDmWebViewMessageUpdated;
 
@@ -82,6 +87,19 @@ namespace DMVideoPlayer
         {
             get { return _isLogged; }
             set { _isLogged = value; }
+        }
+        
+        private WebViewExecutionMode _webViewExecutionModeThread = WebViewExecutionMode.SameThread;
+
+        public WebViewExecutionMode WebViewExecutionModeThread
+        {
+            get { return _webViewExecutionModeThread; }
+            set
+            {
+
+                _webViewExecutionModeThread = value;
+                OnPropertyChanged();
+            }
         }
 
         private WebView _dmVideoPlayer;
@@ -154,9 +172,12 @@ namespace DMVideoPlayer
 
                 //doing call
                 DmVideoPlayer.NavigateWithHttpRequestMessage(request);
+
+                
             }
         }
 
+       
         /// Reset the player with a new instance of the player
         /// - Parameters:
         ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
@@ -224,6 +245,7 @@ namespace DMVideoPlayer
         /// </summary>
         private void DmWebView_ScriptNotify(object sender, NotifyEventArgs e)
         {
+       //     Debug.WriteLine(e?.Value);
             var eventNames = getEventNames(e?.Value);
 
             if (eventNames != null)
@@ -350,15 +372,18 @@ namespace DMVideoPlayer
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
 
             //Headers
-            if(IsXbox)
+            if (IsXbox)
             {
-                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/16.16299");
+                //message.Headers.Add("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1");
+                //message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+                //message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/16.16299");
+                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
             }
             else
             {
                 message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
             }
-            
+
             if (IsXbox && !string.IsNullOrEmpty(this.AccessToken))
             {
                 message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
@@ -366,11 +391,11 @@ namespace DMVideoPlayer
 
             return message;
         }
-
+       
         //Creating a new webview
         private WebView NewWebView()
         {
-            var webView = new WebView(WebViewExecutionMode.SameThread);
+            var webView = new WebView(WebViewExecutionModeThread);
             webView.IsTapEnabled = IsTapEnabled;
             //webView.NavigationStarting += Wb_NavigationStarting;
             webView.Opacity = 1;
@@ -467,7 +492,10 @@ namespace DMVideoPlayer
             catch (Exception e)
             {
                 HasPlayerError = true;
-                throw new Exception("Error : " + callingMethod);
+
+                string title = $"Error : {method}";
+                Debug.WriteLine(title);
+                //throw new PlayerException(tite, e);
             }
         }
 
@@ -483,13 +511,16 @@ namespace DMVideoPlayer
             callingJsMethod.Add(callMethod);
 
             try
-            {                 
+            {
                 await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
             }
             catch (Exception e)
             {
                 HasPlayerError = true;
-                throw new Exception("Error : " + callMethod);
+
+                string title = $"Error : {callMethod}";
+                Debug.WriteLine(title);
+                //throw new PlayerException(tite , e);
             }
         }
 
