@@ -245,7 +245,7 @@ namespace DMVideoPlayer
         /// </summary>
         private void DmWebView_ScriptNotify(object sender, NotifyEventArgs e)
         {
-       //     Debug.WriteLine(e?.Value);
+            Debug.WriteLine(e?.Value);
             var eventNames = getEventNames(e?.Value);
 
             if (eventNames != null)
