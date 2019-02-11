@@ -33,6 +33,9 @@ You will need to add `https://*.dailymotion.com/` to the application contentUri 
 Screenshot:
 ![http://i.imgur.com/OgKljKF.png](http://i.imgur.com/OgKljKF.png)
 
+ ### Demo App
+
+A demo application has been been added that can help you query our public api and then launch the dailymotion player 
 
  ### Feedback
 
