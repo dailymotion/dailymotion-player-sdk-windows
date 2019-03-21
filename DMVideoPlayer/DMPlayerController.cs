@@ -311,8 +311,7 @@ namespace DMVideoPlayer
                     loadParams[0] = VideoId;
                     loadParams[1] = WithParameters["loadedJsonData"];
 
-                    QueueCommand(COMMAND_LOAD_JSON, loadParams);                    
-                    //QueueCommand(COMMAND_LOAD_JSON, new List<string> { VideoId , WithParameters["loadedJsonData"] });                    
+                    QueueCommand(COMMAND_LOAD_JSON, loadParams);
                 }
                 else
                 {
@@ -335,6 +334,9 @@ namespace DMVideoPlayer
             }
         }
 
+        /// <summary>
+        /// cleaning up events
+        /// </summary>
         public void Unload()
         {
             DmVideoPlayer.ScriptNotify -= DmWebView_ScriptNotify;
@@ -471,7 +473,6 @@ namespace DMVideoPlayer
         {
             var webView = new WebView(WebViewExecutionModeThread);
             webView.IsTapEnabled = true;
-            //webView.NavigationStarting += Wb_NavigationStarting;
             webView.Opacity = 1;
             return webView;
         }
@@ -527,24 +528,16 @@ namespace DMVideoPlayer
         /// <param name="methodParams"></param>
         public void QueueCommand(string method, object methodArguments = null)
         {
-            ////remove duplicate commands             
-            //IEnumerator<Command> iterator = mCommandList.GetEnumerator();
-            //while (iterator.MoveNext())
-            //{
-            //    //cleanup
-            //    if (iterator.Current.methodName.Equals(method))
-            //    {
-            //        mCommandList.Remove(iterator.Current);
-            //    }
-            //}
+            ///remove duplicate commands             
+            //none binding copy
+            IEnumerator<Command> iterator = DuplicateCommandListToEnumerator();
 
-            //remove duplicate commands  
-            foreach (Command item in mCommandList)
+            while (iterator.MoveNext())
             {
                 //cleanup
-                if (item.methodName.Equals(method))
+                if (iterator.Current.methodName.Equals(method))
                 {
-                    mCommandList.Remove(item);
+                    mCommandList.Remove(iterator.Current);
                 }
             }
 
@@ -557,10 +550,15 @@ namespace DMVideoPlayer
                 HasPlaybackReady = false;
 
                 ////update iterator
-                //iterator = mCommandList.GetEnumerator();
+                iterator = DuplicateCommandListToEnumerator();
 
-                foreach (Command item in mCommandList)
+                while (iterator.MoveNext())
                 {
+                    Command item = iterator.Current;
+
+                    //foreach (Command item in mCommandList)
+                    //{
+
                     switch (item.methodName)
                     {
                         case COMMAND_NOTIFY_LIKECHANGED:
@@ -594,8 +592,20 @@ namespace DMVideoPlayer
                 return;
             }
 
-            foreach (Command command in mCommandList)
+            //if empty bypass
+            if (!mCommandList.Any())
             {
+                return;
+            }
+
+            IEnumerator<Command> iterator = DuplicateCommandListToEnumerator();
+
+            while (iterator.MoveNext())
+            {
+                Command command = iterator.Current;
+
+                //foreach (Command command in mCommandList)
+                //{
                 //check play pause, if playback not ready dont execute 
                 switch (command.methodName)
                 {
@@ -674,6 +684,10 @@ namespace DMVideoPlayer
             }
         }
 
+        private IEnumerator<Command> DuplicateCommandListToEnumerator()
+        {
+            return new List<Command>(mCommandList).GetEnumerator();
+        }
 
         #region InvokeScriptAsync UWP
         ///// <summary>
