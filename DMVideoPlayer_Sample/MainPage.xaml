@@ -53,7 +53,20 @@
                     Content="load player no controls" />
 
             </StackPanel>
-
+            <StackPanel Grid.Column="1" Margin="10,0,10,0">
+                <Button
+                    Margin="5"
+                    Click="Load_1_OnClick"
+                    Content="load video 1" />
+                <Button
+                    Margin="5"
+                    Click="Load_2_OnClick"
+                    Content="load video 2" />
+                <Button
+                    Margin="5"
+                    Click="Load_3_OnClick"
+                    Content="load video 3" />
+            </StackPanel>
             <StackPanel Grid.Column="2">
                 <Button
                     Margin="5"
@@ -67,6 +80,10 @@
                     Margin="5"
                     Click="mute_click"
                     Content="Mute video" />
+                <Button
+                    Margin="5"
+                    Click="unmute_click"
+                    Content="UnMute video" />
             </StackPanel>
         </Grid>
 

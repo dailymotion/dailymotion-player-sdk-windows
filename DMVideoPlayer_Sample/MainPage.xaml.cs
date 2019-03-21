@@ -66,13 +66,6 @@ namespace DMVideoPlayer_Sample
 
         private void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-
-            //WebView wv = new WebView();
-            //wv.Navigate(new Uri("https://stage-01.dailymotion.com/cdn/manifest/video/x5mscur.m3u8?auth=1519329924-2690-tqsr13jv-e8d6f14db61c2d27a17ca70a1d4e8a9e"));
-
-
-            //MyRootGrid.Children.Add(wv);
-
             Init();
             //With Params and will allow you to recieve dmevents
             //JO Video
@@ -139,6 +132,7 @@ namespace DMVideoPlayer_Sample
 
             dmPlayerController.OnDmWebViewMessageUpdated += DmPlayerController_OnDmWebViewMessageUpdated;
         }
+
         private void InitAndLoad()
         {
             var parameters = new Dictionary<string, string>();
@@ -252,7 +246,7 @@ namespace DMVideoPlayer_Sample
         }
         private void DmPlayerController_OnDmWebViewMessageUpdated()
         {
-            if (dmPlayerController.DmWebViewMessage.Key==null)
+            if (dmPlayerController.DmWebViewMessage.Key == null)
             {
                 return;
             }
@@ -283,13 +277,6 @@ namespace DMVideoPlayer_Sample
         {
             ApplicationView view = ApplicationView.GetForCurrentView();
 
-            //if (view.IsFullScreenMode)
-            //{
-            //    view.ExitFullScreenMode();
-
-            //}
-            //else
-            //{
             if (view.TryEnterFullScreenMode())
             {
                 var size = GetActualSize();
@@ -297,7 +284,6 @@ namespace DMVideoPlayer_Sample
                 MyRootGrid.Width = size.Width - 90;
                 MyRootGrid.Height = size.Height - 190;
             }
-            //}
         }
 
         public static Size GetActualSize()
@@ -328,8 +314,6 @@ namespace DMVideoPlayer_Sample
 
             //init the DMVideoPlayer
             dmPlayerController.Load("x551owj", accessToken, parameters);
-
-
         }
 
         private void Setting2ButtonBase_OnClick(object sender, RoutedEventArgs e)
@@ -343,8 +327,6 @@ namespace DMVideoPlayer_Sample
             parameters["locale"] = "en";
             parameters["controls"] = "false";
 
-
-
             var accessToken = "";// "myAccessToken";
 
             //init the DMVideoPlayer
@@ -353,9 +335,13 @@ namespace DMVideoPlayer_Sample
 
         private void mute_click(object sender, RoutedEventArgs e)
         {
-            // dmPlayerController.CallMethodeOnPlayer("player.setMuted(true)");
-
+            //muting 
             dmPlayerController.Mute();
+        }
+        private void unmute_click(object sender, RoutedEventArgs e)
+        {
+            //muting 
+            dmPlayerController.Unmute();
         }
 
         private void InitPlayer_click(object sender, RoutedEventArgs e)
@@ -371,6 +357,27 @@ namespace DMVideoPlayer_Sample
         private void ResetPlayer_click(object sender, RoutedEventArgs e)
         {
             Reset();
+        }
+
+
+        private void Load_1_OnClick(object sender, RoutedEventArgs e)
+        {
+            //music - imagine dragons
+            loadHtmlVideo("x5mscur");
+        }
+
+
+        private void Load_2_OnClick(object sender, RoutedEventArgs e)
+        {
+            //JO Video - can be geoblocked
+            loadHtmlVideo("x6ez4x0");
+        }
+
+
+        private void Load_3_OnClick(object sender, RoutedEventArgs e)
+        {
+            //video trailer
+            loadHtmlVideo("x5793u6");
         }
     }
 }
