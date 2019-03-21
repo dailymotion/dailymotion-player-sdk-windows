@@ -16,11 +16,56 @@ using Windows.Web.Http;
 using DMVideoPlayer.Annotations;
 using DMVideoPlayer.Models.Enums;
 using DMVideoPlayer.Exceptions;
+using Windows.Foundation.Collections;
+using DMVideoPlayer.Model;
 
 namespace DMVideoPlayer
 {
-    public class DMPlayerController : INotifyPropertyChanged
+
+    public class DmPlayerController : INotifyPropertyChanged
     {
+        #region EVENTS
+
+        public const string EVENT_APIREADY = "apiready";
+        public const string EVENT_TIMEUPDATE = "timeupdate";
+        public const string EVENT_DURATION_CHANGE = "durationchange";
+        public const string EVENT_PROGRESS = "progress";
+        public const string EVENT_SEEKED = "seeked";
+        public const string EVENT_SEEKING = "seeking";
+        public const string EVENT_GESTURE_START = "gesture_start";
+        public const string EVENT_GESTURE_END = "gesture_end";
+        public const string EVENT_MENU_DID_SHOW = "menu_did_show";
+        public const string EVENT_MENU_DID_HIDE = "menu_did_hide";
+        public const string EVENT_VIDEO_START = "video_start";
+        public const string EVENT_VIDEO_END = "video_end";
+        public const string EVENT_AD_START = "ad_start";
+        public const string EVENT_AD_PLAY = "ad_play";
+        public const string EVENT_AD_PAUSE = "ad_pause";
+        public const string EVENT_AD_END = "ad_end";
+        public const string EVENT_AD_TIME_UPDATE = "ad_timeupdate";
+        public const string EVENT_ADD_TO_COLLECTION_REQUESTED = "add_to_collection_requested";
+        public const string EVENT_LIKE_REQUESTED = "like_requested";
+        public const string EVENT_WATCH_LATER_REQUESTED = "watch_later_requested";
+        public const string EVENT_SHARE_REQUESTED = "share_requested";
+        public const string EVENT_FULLSCREEN_TOGGLE_REQUESTED = "fullscreen_toggle_requested";
+        public const string EVENT_PLAY = "play";
+        public const string EVENT_PAUSE = "pause";
+        public const string EVENT_LOADEDMETADATA = "loadedmetadata";
+        public const string EVENT_PLAYING = "playing";
+        public const string EVENT_START = "start";
+        public const string EVENT_END = "end";
+        public const string EVENT_CONTROLSCHANGE = "controlschange";
+        public const string EVENT_VOLUMECHANGE = "volumechange";
+
+        public const string EVENT_QUALITY = "qualitychange";
+        public const string EVENT_QUALITY_CHANGE = "qualitychange";
+        public const string EVENT_QUALITIES_AVAILABLE = "qualitiesavailable";
+
+        public const string EVENT_PLAYBACK_READY = "playback_ready";
+        public const string EVENT_CHROME_CAST_REQUESTED = "chromecast_requested";
+        public const string EVENT_VIDEO_CHANGE = "videochange";
+
+        #endregion
 
         private static string defaultUrlStage = "https://stage-01.dailymotion.com";
         private static string defaultUrl = "https://www.dailymotion.com";
@@ -28,7 +73,7 @@ namespace DMVideoPlayer
         private static bool defaultIsTapEnabled = true;
 
         private static string HockeyAppId = "6d380067c4d848ce863b232a1c5f10ae";
-        private static string version = "2.9.3";
+        private static string version = "3.0.1";
         //private static string bundleIdentifier = "com.dailymotion.dailymotion";
         //private static string bundleIdentifier = "WindowsSDK";
         private static string eventName = "dmevent";
@@ -37,9 +82,24 @@ namespace DMVideoPlayer
         private static string pathWithVideoPrefix = "/embed/video/";
         private static string messageHandlerEvent = "triggerEvent";
 
-        public static string COMMAND_NOTIFY_LIKECHANGED = "notifyLikeChanged";
-        public static string COMMAND_NOTIFY_WATCHLATERCHANGED = "notifyWatchLaterChanged";
-        public static string COMMAND_NOTIFYFULLSCREENCHANGED = "notifyFullscreenChanged";
+        public const string COMMAND_NOTIFY_LIKECHANGED = "notifyLikeChanged";
+        public const string COMMAND_NOTIFY_WATCHLATERCHANGED = "notifyWatchLaterChanged";
+        public const string COMMAND_NOTIFYFULLSCREENCHANGED = "notifyFullscreenChanged";
+        public const string COMMAND_LOAD = "load";
+        public const string COMMAND_LOAD_JSON = "load_json";
+        public const string COMMAND_MUTE = "mute";
+        public const string COMMAND_CONTROLS = "controls";
+        public const string COMMAND_PLAY = "play";
+        public const string COMMAND_PAUSE = "pause";
+        public const string COMMAND_SEEK = "seek";
+        public const string COMMAND_SETPROP = "setProp";
+        public const string COMMAND_QUALITY = "quality";
+        public const string COMMAND_SUBTITLE = "subtitle";
+        public const string COMMAND_TOGGLE_CONTROLS = "toggle-controls";
+        public const string COMMAND_TOGGLE_PLAY = "toggle-play";
+        public const string COMMAND_VOLUME = "volume";
+
+        private IList<Command> mCommandList = new List<Command>();
 
         public event Action OnDmWebViewMessageUpdated;
 
@@ -51,7 +111,7 @@ namespace DMVideoPlayer
         public string AccessToken { get; set; }
         // public string loadedJsonData { get; set; }
         public IDictionary<string, string> WithParameters { get; set; }
-        public bool IsHeroVideo { get; set; }
+        //public bool IsHeroVideo { get; set; }
         public bool PendingPlay { get; set; }
         public bool ShowingAd { get; set; }
         public string BaseUrl
@@ -63,14 +123,6 @@ namespace DMVideoPlayer
         {
             get { return _appName; }
             set { _appName = value; }
-        }
-
-        private bool? _isTapEnabled;
-
-        public bool IsTapEnabled
-        {
-            get { return _isTapEnabled ?? defaultIsTapEnabled; }
-            set { _isTapEnabled = value; }
         }
 
         private bool _isXbox = false;
@@ -88,7 +140,30 @@ namespace DMVideoPlayer
             get { return _isLogged; }
             set { _isLogged = value; }
         }
-        
+
+        private bool _videoPaused = false;
+
+        public bool VideoPaused
+        {
+            get { return _videoPaused; }
+            set { _videoPaused = value; }
+        }
+        private bool _playWhenReady = false;
+
+        public bool PlayWhenReady
+        {
+            get { return _playWhenReady; }
+            set { _playWhenReady = value; }
+        }
+
+        private bool _hasPlaybackReady = false;
+
+        public bool HasPlaybackReady
+        {
+            get { return _hasPlaybackReady; }
+            set { _hasPlaybackReady = value; }
+        }
+
         private WebViewExecutionMode _webViewExecutionModeThread = WebViewExecutionMode.SameThread;
 
         public WebViewExecutionMode WebViewExecutionModeThread
@@ -172,12 +247,10 @@ namespace DMVideoPlayer
 
                 //doing call
                 DmVideoPlayer.NavigateWithHttpRequestMessage(request);
-
-                
             }
         }
 
-       
+
         /// Reset the player with a new instance of the player
         /// - Parameters:
         ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
@@ -190,6 +263,7 @@ namespace DMVideoPlayer
         {
             //clear
             DmVideoPlayer = null;
+            WithParameters = null;
 
             //init player
             Init(accessToken, withParameters, withCookiesParameters);
@@ -256,7 +330,7 @@ namespace DMVideoPlayer
 
                     switch (name.Value)
                     {
-                        case "apiready":
+                        case EVENT_APIREADY:
                             {
                                 ApiReady = true;
                                 if (PendingPlay)
@@ -265,23 +339,52 @@ namespace DMVideoPlayer
                                     Load();
                                 }
 
-                                //Tracking.setPV5Info(map);
                                 break;
                             }
-                        case "ad_start":
+                        case EVENT_AD_START:
                             {
                                 ShowingAd = true;
                                 break;
                             }
-                        case "ad_end":
+                        case EVENT_AD_END:
                             {
                                 ShowingAd = false;
+                                break;
+                            }
+                        case EVENT_PLAY:
+                            {
+                                VideoPaused = false;
+                                PlayWhenReady = true;
+                                break;
+                            }
+                        case EVENT_PAUSE:
+                            {
+                                VideoPaused = true;
+                                PlayWhenReady = false;
+                                break;
+                            }
+                        case EVENT_AD_PLAY:
+                            {
+                                PlayWhenReady = true;
+                                break;
+                            }
+                        case EVENT_AD_PAUSE:
+                            {
+                                PlayWhenReady = false;
+                                break;
+                            }
+
+                        case EVENT_PLAYBACK_READY:
+                            {
+                                HasPlaybackReady = true;
                                 break;
                             }
                     }
 
                     DmWebViewMessage = name;
                 }
+
+                ExecuteQueue();
             }
         }
 
@@ -323,21 +426,23 @@ namespace DMVideoPlayer
 
             if (WithParameters.ContainsKey("jsonEnvironmentInfo"))
             {
-                InitEnvironmentInfoVariables(WithParameters["jsonEnvironmentInfo"]);
-            }
-            else
-            {
-                //set param for partners
+                QueueCommand(COMMAND_SETPROP, WithParameters["jsonEnvironmentInfo"]);
             }
 
-
+            //COMMAND_LOAD_JSON
             if (WithParameters.ContainsKey("loadedJsonData"))
             {
-                CallPlayerMethod("load", VideoId, WithParameters["loadedJsonData"]);
+                var Params = new string[1];
+                Params[0] = VideoId;
+                Params[1] = WithParameters["loadedJsonData"];
+
+                QueueCommand(COMMAND_LOAD_JSON, Params);
+                //QueueCommand(COMMAND_LOAD, VideoId, WithParameters["loadedJsonData"]);
             }
             else
             {
-                CallPlayerMethod("load", VideoId);
+                //CallPlayerMethod("load", VideoId);
+                QueueCommand(COMMAND_LOAD, VideoId);
             }
 
             //check to see if we wish to mute or not the video
@@ -354,15 +459,8 @@ namespace DMVideoPlayer
             }
         }
 
-        /// Set a player property, for Dailymotion use only
-        /// - Parameter jsonData: The data value to set
-        public void InitEnvironmentInfoVariables(string jsonData)
-        {
-            CallPlayerMethod("setProp", "neon", jsonData);
-        }
-
         /// <summary>
-        /// Creates the http url
+        /// Creates the https url
         /// </summary>
         /// <param name="videoId"></param>
         /// <param name="parameters"></param>
@@ -371,16 +469,14 @@ namespace DMVideoPlayer
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
 
-            //Headers
+            //special Headers for xbox and windows
             if (IsXbox)
             {
-                //message.Headers.Add("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1");
-                //message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
-                //message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/16.16299");
                 message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
             }
             else
             {
+                //other windows devices
                 message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
             }
 
@@ -391,35 +487,22 @@ namespace DMVideoPlayer
 
             return message;
         }
-       
+
         //Creating a new webview
         private WebView NewWebView()
         {
             var webView = new WebView(WebViewExecutionModeThread);
-            webView.IsTapEnabled = IsTapEnabled;
+            webView.IsTapEnabled = true;
             //webView.NavigationStarting += Wb_NavigationStarting;
             webView.Opacity = 1;
             return webView;
         }
 
-        //old code
-        //private void NavigateWithHeader(Uri uri)
-        //{
-        //    var requestMsg = new Windows.Web.Http.HttpRequestMessage(HttpMethod.Get, uri);
-        //    requestMsg.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
-        //    DmVideoPlayer.NavigateWithHttpRequestMessage(requestMsg);
-
-        //    DmVideoPlayer.NavigationStarting += Wb_NavigationStarting;
-        //}
-
-        //private void Wb_NavigationStarting(WebView sender, WebViewNavigationStartingEventArgs args)
-        //{
-        //    DmVideoPlayer.NavigationStarting -= Wb_NavigationStarting;
-        //    args.Cancel = true;
-        //    NavigateWithHeader(args.Uri);
-        //}
-
-
+        /// <summary>
+        /// setting a cookie in our webview
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         private void SetCookieInWebView(string key, string value)
         {
             Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
@@ -447,9 +530,7 @@ namespace DMVideoPlayer
             }
 
             parameters["api"] = "nativeBridge";
-            //// parameters["objc_sdk_version"] = version;
             parameters["app"] = AppName;
-            ////parameters["GK_PV5_ANTI_ADBLOCK"] = "0";
             parameters["GK_PV5_NEON"] = "1";
 
             var builder = new StringBuilder(components);
@@ -460,171 +541,372 @@ namespace DMVideoPlayer
             return new Uri(builder.ToString());
         }
 
+
         /// <summary>
-        /// show the player controls depending on the bool
+        /// queue the js commands we wish to send to the player
         /// </summary>
-        /// <param name="show"></param>
-        public void ToggleControls(bool show)
+        /// <param name="method"></param>
+        /// <param name="methodParams"></param>
+        public void QueueCommand(string method, object methodArguments = null)
         {
-            var hasControls = show ? "1" : "0";
-            //NotifyPlayerApi(method: "controls", argument: hasControls);
+            //remove duplicate commands             
+            IEnumerator<Command> iterator = mCommandList.GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                //cleanup
+                if (iterator.Current.methodName.Equals(method))
+                {
+                    mCommandList.Remove(iterator.Current);
+                }
+            }
 
-            CallEvalWebviewMethod(string.Format("player.controls = {0}", hasControls));
+            /// if we're loading a new video, cancel the stuff from before
+            if (method.Equals(COMMAND_LOAD))
+            {
+                //reset
+                //ApiReady = false;
+                HasPlaybackReady = false;
 
+                //update iterator
+                iterator = mCommandList.GetEnumerator();
+
+                while (iterator.MoveNext())
+                {
+                    switch (iterator.Current.methodName)
+                    {
+                        case COMMAND_NOTIFY_LIKECHANGED:
+                        case COMMAND_NOTIFY_WATCHLATERCHANGED:
+                        case COMMAND_SEEK:
+                        case COMMAND_PAUSE:
+                        case COMMAND_PLAY:
+                            mCommandList.Remove(iterator.Current);
+                            break;
+                    }
+                }
+            }
+
+            //init method & argument to command
+            Command command = new Command();
+            command.methodName = method;
+            command.methodArguments = methodArguments;
+            mCommandList.Add(command);
+
+            ExecuteQueue();
         }
+
+        /// <summary>
+        /// Execute all the commands that are queued
+        /// </summary>
+        private void ExecuteQueue()
+        {
+            //if not ready wait
+            if (!ApiReady)
+            {
+                return;
+            }
+
+            IEnumerator<Command> iterator = mCommandList.GetEnumerator();           
+
+            while (iterator.MoveNext())
+            {
+                Command command = iterator.Current;
+                switch (command.methodName)
+                {
+                    case COMMAND_PAUSE:
+                    case COMMAND_PLAY:
+                        if (!HasPlaybackReady)
+                        {
+                            continue;
+                        }
+                        break;
+
+                }
+
+                //remove before sending
+                mCommandList.Remove(iterator.Current);
+
+                sendJavascriptCommand(command);
+            }
+        }
+
+        /// <summary>
+        /// will converter the command to my js query
+        /// </summary>
+        /// <param name="command"></param>
+        private void sendJavascriptCommand(Command command)
+        {
+            //C# 8 to update 
+            //var (methodName, methodArguments) = command switch
+            //    {
+            //    COMMAND_CONTROLS => "api", "controls",
+            //};
+
+
+            switch (command.methodName)
+            {
+                case COMMAND_MUTE:
+                    CallPlayerMethodV2("api", (Boolean)command.methodArguments ? "mute" : "unmute");
+                    break;
+                case COMMAND_CONTROLS:
+                    CallPlayerMethodV2(COMMAND_CONTROLS, command.methodArguments);
+                    break;
+                case COMMAND_QUALITY:
+                    CallPlayerMethodV2("setQuality", command.methodArguments);
+                    break;
+                case COMMAND_SEEK:
+                    CallPlayerMethodV2(COMMAND_SEEK, command.methodArguments);
+                    break;
+                case COMMAND_NOTIFYFULLSCREENCHANGED:
+                    CallPlayerMethodV2("setFullscreen", command.methodArguments);
+                    break;
+                case COMMAND_VOLUME:
+                    CallPlayerMethodV2("api", command.methodArguments);
+                    break;
+                case COMMAND_SETPROP:
+                    CallPlayerMethodV2(COMMAND_SETPROP, "neon", command.methodArguments);
+                    break;
+
+                case COMMAND_LOAD_JSON:
+                    string[] arguments = command.methodArguments as string[];
+                    CallPlayerMethodV2(COMMAND_LOAD, arguments[0], arguments[1]);
+                    break;
+                //case COMMAND_LOAD:
+                //    CallPlayerMethod("load", command.methodArguments);
+                //    break;
+
+                case COMMAND_PLAY:
+                case COMMAND_PAUSE:
+
+                    CallPlayerMethodV2("api", command.methodName);
+                    break;
+                default:
+                    //COMMAND_LOAD
+                    CallPlayerMethodV2(command.methodName, command.methodArguments);
+                    break;
+            }
+        }
+
+
+        #region InvokeScriptAsync UWP
+        ///// <summary>
+        ///// Js method to call
+        ///// </summary>
+        ///// <param name="callMethod"></param>
+        //private async void CallEvalOnWebview_OLD(string callMethod)
+        //{
+        //    if (!callMethod.Contains("mute"))
+        //    {
+        //        Debug.WriteLine(callMethod);
+        //    }
+
+        //    List<string> callingJsMethod = new List<string>();
+        //    callingJsMethod.Add(callMethod);
+
+        //    try
+        //    {
+        //        await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        HasPlayerError = true;
+
+        //        string title = $"Error : {callMethod}";
+        //        Debug.WriteLine(title);
+        //        //throw new PlayerException(tite , e);
+        //    }
+        //}
 
         /// <summary>
         /// Sends a command to the player, for example seek/pause/play
         /// </summary>
         /// <param name="method"></param>
         /// <param name="argument"></param>
-        private async void NotifyPlayerApi(string method, string argument = null)
-        {
-            string callingMethod = string.Format("player.api('{0}')", method);
 
-            List<string> callingJsMethod = new List<string>();
-            callingJsMethod.Add(callingMethod);
+        //private async void CallPlayerApi_OLD(string method, string argument = null)
+        //{
+        //    string callingMethod = string.Format("player.api('{0}')", method);
 
-            try
-            {
-                await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
-            }
-            catch (Exception e)
-            {
-                HasPlayerError = true;
+        //    List<string> callingJsMethod = new List<string>();
+        //    callingJsMethod.Add(callingMethod);
 
-                string title = $"Error : {method}";
-                Debug.WriteLine(title);
-                //throw new PlayerException(tite, e);
-            }
-        }
+        //    try
+        //    {
+        //        await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        HasPlayerError = true;
 
-
-        private async void CallEvalWebviewMethod(string callMethod)
-        {
-            if (!callMethod.Contains("mute"))
-            {
-                Debug.WriteLine(callMethod);
-            }
-
-            List<string> callingJsMethod = new List<string>();
-            callingJsMethod.Add(callMethod);
-
-            try
-            {
-                await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
-            }
-            catch (Exception e)
-            {
-                HasPlayerError = true;
-
-                string title = $"Error : {callMethod}";
-                Debug.WriteLine(title);
-                //throw new PlayerException(tite , e);
-            }
-        }
+        //        string title = $"Error : {method}";
+        //        Debug.WriteLine(title);
+        //        //throw new PlayerException(tite, e);
+        //    }
+        //}
 
         /// <summary>
-        /// Sends params to the player
+        /// Sends js commands to the webview player
         /// </summary>
         /// <param name="method"></param>
         /// <param name="param"></param>
         /// <param name="dataJson"></param>
-        public async void CallPlayerMethod(string method, string param, string dataJson = null)
+        private async void CallPlayerMethodV2(string method, object param, object dataJson = null)
         {
             StringBuilder builder = new StringBuilder();
             builder.Append("player.");
             builder.Append(method);
             builder.Append('(');
-            builder.Append("'" + param + "'");
+            builder.Append("'" + param.ToString() + "'");
 
             if (dataJson != null)
             {
                 builder.Append(",JSON.parse('" + dataJson + "')");
-                // builder.Append("," + dataJson + "");
             }
 
             builder.Append(')');
-            String js = builder.ToString();
+            string js = builder.ToString();
+                        
+            if (!js.Contains("mute"))
+            {
+                Debug.WriteLine(js);
+            }
 
-            CallEvalWebviewMethod(js);
+            List<string> callingJsMethod = new List<string>();
+            callingJsMethod.Add(js);
+
+            try
+            {
+                await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
+            }
+            catch (Exception e)
+            {
+                HasPlayerError = true;
+
+                string title = $"Error : {js}";
+                Debug.WriteLine(title);
+                //throw new PlayerException(tite , e);
+            }
         }
 
-        public void setHeroVideo(bool isHeroVideo)
+
+        #endregion
+
+
+        #region Command
+
+        /// <summary>
+        /// show the player controls depending on the bool
+        /// </summary>
+        /// <param name="show"></param>
+        public void ToggleControls(bool show)
         {
-            IsHeroVideo = isHeroVideo;
+            //var hasControls = show ? "1" : "0";
+
+            QueueCommand(COMMAND_CONTROLS, show ? "1" : "0");
         }
 
-        public bool isHeroVideo()
-        {
-            return IsHeroVideo;
-        }
-
+        /// <summary>
+        /// update the player icon to fullscreen
+        /// </summary>
         public void ToggleFullscreen()
         {
-            NotifyPlayerApi("notifyFullscreenChanged");
+            QueueCommand(COMMAND_NOTIFYFULLSCREENCHANGED);
         }
 
+        /// <summary>
+        /// start playing a video
+        /// </summary>
         public void Play()
         {
             Debug.Write("PLAYER", "play");
-            NotifyPlayerApi("play");
 
-            if (IsHeroVideo)
-            {
-                Mute();
-            }
-            else
-            {
-                Unmute();
-            }
+            //calling play
+            QueueCommand(COMMAND_PLAY);
+
+            //using new command queue
+            //if (IsHeroVideo)
+            //{
+            //    Mute();
+            //}
+            //else
+            //{
+            //    Unmute();
+            //}
         }
 
+        /// <summary>
+        /// pause a video
+        /// </summary>
         public void Pause()
         {
-            //Debug.Write("PLAYER", "pause");
-            NotifyPlayerApi("pause");
+            Debug.Write("PLAYER", "pause");
+            QueueCommand(COMMAND_PAUSE);
+        }
+
+        /// <summary>
+        /// Set Mute or Unmute of video, internal
+        /// </summary>
+        /// <param name="mute"></param>
+        private void mute(bool mute)
+        {
+            QueueCommand(COMMAND_MUTE, mute);
         }
 
         public void Mute()
         {
-            //Debug.Write("PLAYER", "MUTE");
-            NotifyPlayerApi("mute");
+            mute(true);
         }
 
         public void Unmute()
         {
-            //Debug.Write("PLAYER", "unmute");
-            NotifyPlayerApi("unmute");
+            mute(false);
         }
 
-
+        /// <summary>
+        /// set the volume of the player
+        /// </summary>
+        /// <param name="value"></param>
         public void Volume(double value)
         {
             if (value >= 0.0 && value <= 1.0)
             {
-                //NotifyPlayerApi("setVolume", value.ToString());
-                NotifyPlayerApi(string.Format("setVolume({0})", value.ToString()));
+                string volumeValue = string.Format("setVolume({0})", value.ToString());
+                QueueCommand(COMMAND_VOLUME, volumeValue);
+
             }
         }
 
+        /// <summary>
+        /// seek in the video +/-
+        /// </summary>
+        /// <param name="seconds"></param>
         public void Seek(int seconds)
         {
-            //player.seek(30);
-            CallEvalWebviewMethod(string.Format("player.seek({0})", seconds));
-            //NotifyPlayerApi(method: "seek", argument: "\(to)");
-        }
-        public void setQuality(Qualities videoQuality)
-        {
-            //player.setQuality('720');
-            CallEvalWebviewMethod(string.Format("player.setQuality('{0}')", (int)videoQuality));
+            //player.seek(30);             
+            QueueCommand(COMMAND_SEEK, seconds);
+
         }
 
+        /// <summary>
+        /// set the quality of the video we would like, with HLS this is not really needed
+        /// </summary>
+        /// <param name="videoQuality"></param>
+        public void setQuality(Qualities videoQuality)
+        {
+            QueueCommand(COMMAND_QUALITY, (int)videoQuality);
+        }
+
+        /// <summary>
+        /// inform player that it is in fullscreen
+        /// </summary>
+        /// <param name="isFullScreen"></param>
         public void setFulScreen(bool isFullScreen)
         {
-            //player.setQuality('720');
-            CallEvalWebviewMethod(string.Format("player.setFullscreen({0})", isFullScreen));
+            QueueCommand(COMMAND_NOTIFYFULLSCREENCHANGED, isFullScreen);
         }
+
+        #endregion
+
+
 
         public event PropertyChangedEventHandler PropertyChanged;
 

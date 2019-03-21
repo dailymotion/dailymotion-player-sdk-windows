@@ -14,9 +14,10 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using DMVideoPlayer;
+
 using Newtonsoft.Json;
 using Windows.UI.ViewManagement;
+using DMVideoPlayer;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -29,7 +30,7 @@ namespace DMVideoPlayer_Sample
     {
         #region prop
 
-        private DMPlayerController dmPlayerController;
+        private DmPlayerController dmPlayerController;
 
         #endregion
 
@@ -79,7 +80,7 @@ namespace DMVideoPlayer_Sample
             //loadHtmlVideo("x6f0xd3");
 
             //imagine dragons
-              loadHtmlVideo("x5mscur");
+            loadHtmlVideo("x5mscur");
 
 
             //loadHtmlVideo("x5793u6");
@@ -87,7 +88,7 @@ namespace DMVideoPlayer_Sample
             var size = GetActualSize();
 
             MyRootGrid.Width = size.Width - 90;
-            MyRootGrid.Height = size.Height - 90;
+            MyRootGrid.Height = size.Height - 190;
         }
 
         private void Init()
@@ -107,15 +108,15 @@ namespace DMVideoPlayer_Sample
             // parameters["chromeless"] = "true";
             parameters["auto"] = "true";
 
-            
-                parameters["controls"] = "1";
 
-                parameters["sharing-enable"] = "false";
-                parameters["fullscreen-enable"] = "fullscreen_only";
-                parameters["collections-enable"] = "false";
-                parameters["watchlater-enable"] = "false";
-                parameters["like-enable"] = "false";
-           
+            parameters["controls"] = "1";
+
+            parameters["sharing-enable"] = "false";
+            parameters["fullscreen-enable"] = "fullscreen_only";
+            parameters["collections-enable"] = "false";
+            parameters["watchlater-enable"] = "false";
+            parameters["like-enable"] = "false";
+
 
             parameters["quality"] = "2160";
             //parameters["quality"] = "1080";
@@ -123,7 +124,7 @@ namespace DMVideoPlayer_Sample
             parameters["GK_PV5_GLOBAL_TIMEOUT_EXTENDED"] = "true";
 
             //init
-            dmPlayerController = new DMPlayerController();
+            dmPlayerController = new DmPlayerController();
 
             var accessToken = "";// "myAccessToken";
 
@@ -161,7 +162,7 @@ namespace DMVideoPlayer_Sample
             parameters["GK_PV5_GLOBAL_TIMEOUT_EXTENDED"] = "true";
 
             //init
-            dmPlayerController = new DMPlayerController();
+            dmPlayerController = new DmPlayerController();
 
             var accessToken = "";// "myAccessToken";
 
@@ -206,7 +207,7 @@ namespace DMVideoPlayer_Sample
             parameters["GK_PV5_GLOBAL_TIMEOUT_EXTENDED"] = "true";
 
             //init
-            dmPlayerController = new DMPlayerController();
+            dmPlayerController = new DmPlayerController();
 
             var accessToken = "";// "myAccessToken";
 
@@ -238,9 +239,9 @@ namespace DMVideoPlayer_Sample
             parameters["sharing-action"] = "trigger_event";
             parameters["autoplay"] = "true";
 
-			//this will allow the player to auto next to the next related video
-			parameters["queue-enable"] = "false";
-			parameters["queue-enable"] = "false";
+            //this will allow the player to auto next to the next related video
+            parameters["queue-enable"] = "false";
+            parameters["queue-enable"] = "false";
 
 
             var accessToken = "";// "myAccessToken";
@@ -251,6 +252,11 @@ namespace DMVideoPlayer_Sample
         }
         private void DmPlayerController_OnDmWebViewMessageUpdated()
         {
+            if (dmPlayerController.DmWebViewMessage.Key==null)
+            {
+                return;
+            }
+
             if (!dmPlayerController.DmWebViewMessage.Key.Contains("time")
                 && !dmPlayerController.DmWebViewMessage.Value.Contains("time")
                 && !dmPlayerController.DmWebViewMessage.Key.Contains("progress")
@@ -280,23 +286,20 @@ namespace DMVideoPlayer_Sample
             //if (view.IsFullScreenMode)
             //{
             //    view.ExitFullScreenMode();
-                
+
             //}
             //else
             //{
-                if (view.TryEnterFullScreenMode())
-                {
-                    var size = GetActualSize();
+            if (view.TryEnterFullScreenMode())
+            {
+                var size = GetActualSize();
 
-                    MyRootGrid.Width = size.Width-90;
-                    MyRootGrid.Height = size.Height-90;
-                 
-                }
+                MyRootGrid.Width = size.Width - 90;
+                MyRootGrid.Height = size.Height - 190;
+            }
             //}
-
-
-
         }
+
         public static Size GetActualSize()
         {
             return new Size(Window.Current.Bounds.Width, Window.Current.Bounds.Height);
@@ -320,7 +323,7 @@ namespace DMVideoPlayer_Sample
             parameters["ui-logo"] = "false";
             parameters["endscreen-enable"] = "false";
             parameters["mute"] = "true";
-            parameters["quality"] = "2160";
+            //parameters["quality"] = "2160";
             var accessToken = "";// "myAccessToken";
 
             //init the DMVideoPlayer

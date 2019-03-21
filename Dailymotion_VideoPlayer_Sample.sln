@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMVideoPlayer", "DMVideoPlayer\DMVideoPlayer.csproj", "{431E095A-B0E7-412E-A877-F183DA38450C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmVideoPlayer", "DMVideoPlayer\DmVideoPlayer.csproj", "{431E095A-B0E7-412E-A877-F183DA38450C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DMVideoPlayer_Sample.Win10", "DMVideoPlayer_Sample\DMVideoPlayer_Sample.Win10.csproj", "{1A7CD94A-9E4B-4FA6-BE24-EF62D9918871}"
 EndProject
@@ -84,6 +84,8 @@ Global
 		{EFEE1777-7271-4A7A-9282-A281D130FC30}.Release|x86.Build.0 = Release|x86
 		{EFEE1777-7271-4A7A-9282-A281D130FC30}.Release|x86.Deploy.0 = Release|x86
 		{BD478C82-588F-494E-BD5A-E39CD9366A5D}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{BD478C82-588F-494E-BD5A-E39CD9366A5D}.Debug|Any CPU.Build.0 = Debug|x86
+		{BD478C82-588F-494E-BD5A-E39CD9366A5D}.Debug|Any CPU.Deploy.0 = Debug|x86
 		{BD478C82-588F-494E-BD5A-E39CD9366A5D}.Debug|ARM.ActiveCfg = Debug|ARM
 		{BD478C82-588F-494E-BD5A-E39CD9366A5D}.Debug|ARM.Build.0 = Debug|ARM
 		{BD478C82-588F-494E-BD5A-E39CD9366A5D}.Debug|ARM.Deploy.0 = Debug|ARM

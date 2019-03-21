@@ -176,10 +176,10 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="DMVideoPlayer, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\..\Dailymotion\dailymotion-player-sdk-windows\Release\DMVideoPlayer.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\DMVideoPlayer\DmVideoPlayer.csproj">
+      <Project>{431e095a-b0e7-412e-a877-f183da38450c}</Project>
+      <Name>DmVideoPlayer</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
