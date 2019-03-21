@@ -292,16 +292,44 @@ namespace DMVideoPlayer
                     //init webview with cookies
                     Init(accessToken, withParameters, withCookiesParameters);
                 }
+
+                //if empty bypass 
+                if (WithParameters == null)
+                    return;
+
+                ///Creatings commands from passed Paramaters
+                //COMMAND_SETPROP
+                if (WithParameters.ContainsKey("jsonEnvironmentInfo"))
+                {
+                    QueueCommand(COMMAND_SETPROP, WithParameters["jsonEnvironmentInfo"]);
+                }
+
+                //COMMAND_LOAD_JSON
+                if (WithParameters.ContainsKey("loadedJsonData"))
+                {
+                    var loadParams = new string[1];
+                    loadParams[0] = VideoId;
+                    loadParams[1] = WithParameters["loadedJsonData"];
+
+                    QueueCommand(COMMAND_LOAD_JSON, loadParams);                    
+                    //QueueCommand(COMMAND_LOAD_JSON, new List<string> { VideoId , WithParameters["loadedJsonData"] });                    
+                }
                 else
                 {
-                    if (ApiReady)
+                    //CallPlayerMethod("load", VideoId);
+                    QueueCommand(COMMAND_LOAD, VideoId);
+                }
+
+                //check to see if we wish to mute or not the video
+                if (WithParameters.ContainsKey("mute"))
+                {
+                    if (WithParameters["mute"] == "true")
                     {
-                        Load();
-                        PendingPlay = false;
+                        Mute();
                     }
                     else
                     {
-                        PendingPlay = true;
+                        Unmute();
                     }
                 }
             }
@@ -333,12 +361,6 @@ namespace DMVideoPlayer
                         case EVENT_APIREADY:
                             {
                                 ApiReady = true;
-                                if (PendingPlay)
-                                {
-                                    PendingPlay = false;
-                                    Load();
-                                }
-
                                 break;
                             }
                         case EVENT_AD_START:
@@ -413,50 +435,6 @@ namespace DMVideoPlayer
                 }
             }
             return queryParameters;
-        }
-
-        /// <summary>
-        /// When the player is already loaded this allows to us to call on the JS methods of the player and thus allows to interact with it
-        /// Load allows us to start a video without having to requery a URL
-        /// </summary>
-        private void Load()
-        {
-            if (WithParameters == null)
-                return;
-
-            if (WithParameters.ContainsKey("jsonEnvironmentInfo"))
-            {
-                QueueCommand(COMMAND_SETPROP, WithParameters["jsonEnvironmentInfo"]);
-            }
-
-            //COMMAND_LOAD_JSON
-            if (WithParameters.ContainsKey("loadedJsonData"))
-            {
-                var Params = new string[1];
-                Params[0] = VideoId;
-                Params[1] = WithParameters["loadedJsonData"];
-
-                QueueCommand(COMMAND_LOAD_JSON, Params);
-                //QueueCommand(COMMAND_LOAD, VideoId, WithParameters["loadedJsonData"]);
-            }
-            else
-            {
-                //CallPlayerMethod("load", VideoId);
-                QueueCommand(COMMAND_LOAD, VideoId);
-            }
-
-            //check to see if we wish to mute or not the video
-            if (WithParameters.ContainsKey("mute"))
-            {
-                if (WithParameters["mute"] == "true")
-                {
-                    Mute();
-                }
-                else
-                {
-                    Unmute();
-                }
-            }
         }
 
         /// <summary>
@@ -549,16 +527,27 @@ namespace DMVideoPlayer
         /// <param name="methodParams"></param>
         public void QueueCommand(string method, object methodArguments = null)
         {
-            //remove duplicate commands             
-            IEnumerator<Command> iterator = mCommandList.GetEnumerator();
-            while (iterator.MoveNext())
+            ////remove duplicate commands             
+            //IEnumerator<Command> iterator = mCommandList.GetEnumerator();
+            //while (iterator.MoveNext())
+            //{
+            //    //cleanup
+            //    if (iterator.Current.methodName.Equals(method))
+            //    {
+            //        mCommandList.Remove(iterator.Current);
+            //    }
+            //}
+
+            //remove duplicate commands  
+            foreach (Command item in mCommandList)
             {
                 //cleanup
-                if (iterator.Current.methodName.Equals(method))
+                if (item.methodName.Equals(method))
                 {
-                    mCommandList.Remove(iterator.Current);
+                    mCommandList.Remove(item);
                 }
             }
+
 
             /// if we're loading a new video, cancel the stuff from before
             if (method.Equals(COMMAND_LOAD))
@@ -567,19 +556,19 @@ namespace DMVideoPlayer
                 //ApiReady = false;
                 HasPlaybackReady = false;
 
-                //update iterator
-                iterator = mCommandList.GetEnumerator();
+                ////update iterator
+                //iterator = mCommandList.GetEnumerator();
 
-                while (iterator.MoveNext())
+                foreach (Command item in mCommandList)
                 {
-                    switch (iterator.Current.methodName)
+                    switch (item.methodName)
                     {
                         case COMMAND_NOTIFY_LIKECHANGED:
                         case COMMAND_NOTIFY_WATCHLATERCHANGED:
                         case COMMAND_SEEK:
                         case COMMAND_PAUSE:
                         case COMMAND_PLAY:
-                            mCommandList.Remove(iterator.Current);
+                            mCommandList.Remove(item);
                             break;
                     }
                 }
@@ -605,11 +594,9 @@ namespace DMVideoPlayer
                 return;
             }
 
-            IEnumerator<Command> iterator = mCommandList.GetEnumerator();           
-
-            while (iterator.MoveNext())
+            foreach (Command command in mCommandList)
             {
-                Command command = iterator.Current;
+                //check play pause, if playback not ready dont execute 
                 switch (command.methodName)
                 {
                     case COMMAND_PAUSE:
@@ -623,8 +610,9 @@ namespace DMVideoPlayer
                 }
 
                 //remove before sending
-                mCommandList.Remove(iterator.Current);
+                mCommandList.Remove(command);
 
+                //send command
                 sendJavascriptCommand(command);
             }
         }
@@ -764,7 +752,7 @@ namespace DMVideoPlayer
 
             builder.Append(')');
             string js = builder.ToString();
-                        
+
             if (!js.Contains("mute"))
             {
                 Debug.WriteLine(js);
