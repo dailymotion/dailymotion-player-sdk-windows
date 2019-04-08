@@ -349,7 +349,7 @@ namespace DMVideoPlayer
         /// </summary>
         private void DmWebView_ScriptNotify(object sender, NotifyEventArgs e)
         {
-            Debug.WriteLine(e?.Value);
+            //Debug.WriteLine(e?.Value);
             var eventNames = getEventNames(e?.Value);
 
             if (eventNames != null)
@@ -642,12 +642,12 @@ namespace DMVideoPlayer
 
             switch (command.methodName)
             {
-                //case COMMAND_MUTE:
-                ////player.api('mute','0')
-                //CallPlayerMethodV2("api", (Boolean)command.methodArguments ? "mute" : "unmute");
-                //break;
-                case COMMAND_VOLUME:
                 case COMMAND_MUTE:
+                    //player.api('mute','0')
+                    CallPlayerMethodV2("api", (Boolean)command.methodArguments ? "mute" : "unmute");
+                    break;
+                case COMMAND_VOLUME:
+                //case COMMAND_MUTE:
                 case COMMAND_CONTROLS:
                     //player.api('controls','0')
                     CallPlayerMethodV2("api", command.methodArguments);
@@ -741,7 +741,7 @@ namespace DMVideoPlayer
             builder.Append(')');
             string js = builder.ToString();
 
-            if (!js.Contains("mute"))
+            //if (!js.Contains("mute"))
             {
                 Debug.WriteLine(js);
             }
@@ -826,11 +826,11 @@ namespace DMVideoPlayer
         /// <param name="mute"></param>
         private void mute(bool mute)
         {
-            var _params = new string[2];
-            _params[0] = COMMAND_MUTE;
-            _params[1] = mute ? "1" : "0";
+            //var _params = new string[2];
+            //_params[0] = COMMAND_MUTE;
+            //_params[1] = mute ? "1" : "0";
 
-            QueueCommand(COMMAND_MUTE, _params);
+            QueueCommand(COMMAND_MUTE, mute);
         }
 
         public void Mute()
