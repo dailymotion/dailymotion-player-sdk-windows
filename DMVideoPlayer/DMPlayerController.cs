@@ -307,11 +307,11 @@ namespace DMVideoPlayer
                 //COMMAND_LOAD_JSON
                 if (WithParameters.ContainsKey("loadedJsonData"))
                 {
-                    var loadParams = new string[1];
-                    loadParams[0] = VideoId;
-                    loadParams[1] = WithParameters["loadedJsonData"];
+                    var _params = new string[2];
+                    _params[0] = VideoId;
+                    _params[1] = WithParameters["loadedJsonData"];
 
-                    QueueCommand(COMMAND_LOAD_JSON, loadParams);
+                    QueueCommand(COMMAND_LOAD_JSON, _params);
                 }
                 else
                 {
@@ -642,11 +642,15 @@ namespace DMVideoPlayer
 
             switch (command.methodName)
             {
+                //case COMMAND_MUTE:
+                ////player.api('mute','0')
+                //CallPlayerMethodV2("api", (Boolean)command.methodArguments ? "mute" : "unmute");
+                //break;
+                case COMMAND_VOLUME:
                 case COMMAND_MUTE:
-                    CallPlayerMethodV2("api", (Boolean)command.methodArguments ? "mute" : "unmute");
-                    break;
                 case COMMAND_CONTROLS:
-                    CallPlayerMethodV2(COMMAND_CONTROLS, command.methodArguments);
+                    //player.api('controls','0')
+                    CallPlayerMethodV2("api", command.methodArguments);
                     break;
                 case COMMAND_QUALITY:
                     CallPlayerMethodV2("setQuality", command.methodArguments);
@@ -657,9 +661,9 @@ namespace DMVideoPlayer
                 case COMMAND_NOTIFYFULLSCREENCHANGED:
                     CallPlayerMethodV2("setFullscreen", command.methodArguments);
                     break;
-                case COMMAND_VOLUME:
-                    CallPlayerMethodV2("api", command.methodArguments);
-                    break;
+                //case COMMAND_VOLUME:
+                //    CallPlayerMethodV2("api", command.methodArguments);
+                //    break;
                 case COMMAND_SETPROP:
                     CallPlayerMethodV2(COMMAND_SETPROP, "neon", command.methodArguments);
                     break;
@@ -690,60 +694,6 @@ namespace DMVideoPlayer
         }
 
         #region InvokeScriptAsync UWP
-        ///// <summary>
-        ///// Js method to call
-        ///// </summary>
-        ///// <param name="callMethod"></param>
-        //private async void CallEvalOnWebview_OLD(string callMethod)
-        //{
-        //    if (!callMethod.Contains("mute"))
-        //    {
-        //        Debug.WriteLine(callMethod);
-        //    }
-
-        //    List<string> callingJsMethod = new List<string>();
-        //    callingJsMethod.Add(callMethod);
-
-        //    try
-        //    {
-        //        await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        HasPlayerError = true;
-
-        //        string title = $"Error : {callMethod}";
-        //        Debug.WriteLine(title);
-        //        //throw new PlayerException(tite , e);
-        //    }
-        //}
-
-        /// <summary>
-        /// Sends a command to the player, for example seek/pause/play
-        /// </summary>
-        /// <param name="method"></param>
-        /// <param name="argument"></param>
-
-        //private async void CallPlayerApi_OLD(string method, string argument = null)
-        //{
-        //    string callingMethod = string.Format("player.api('{0}')", method);
-
-        //    List<string> callingJsMethod = new List<string>();
-        //    callingJsMethod.Add(callingMethod);
-
-        //    try
-        //    {
-        //        await DmVideoPlayer?.InvokeScriptAsync("eval", callingJsMethod);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        HasPlayerError = true;
-
-        //        string title = $"Error : {method}";
-        //        Debug.WriteLine(title);
-        //        //throw new PlayerException(tite, e);
-        //    }
-        //}
 
         /// <summary>
         /// Sends js commands to the webview player
@@ -757,13 +707,37 @@ namespace DMVideoPlayer
             builder.Append("player.");
             builder.Append(method);
             builder.Append('(');
-            builder.Append("'" + param.ToString() + "'");
+
+            //when multiple params
+            if (method.Equals("api") && param.GetType().Equals(typeof(string[])))
+            {
+                int count = 0;
+                var convertedParams = param as string[];
+                foreach (object o in convertedParams)
+                {
+                    count++;
+                    //if (o.GetType().Equals(typeof(string)))
+                    //    builder.Append("'" + param + "'");
+                    //else
+                        builder.Append("'" + o.ToString() + "'");
+
+                    if (count < convertedParams.Length)
+                    {
+                        builder.Append(",");
+                    }
+                }
+            }
+            else
+            {
+                builder.Append("'" + param.ToString() + "'");
+            }
 
             if (dataJson != null)
             {
                 builder.Append(",JSON.parse('" + dataJson + "')");
             }
 
+            //end
             builder.Append(')');
             string js = builder.ToString();
 
@@ -802,8 +776,10 @@ namespace DMVideoPlayer
         public void ToggleControls(bool show)
         {
             //var hasControls = show ? "1" : "0";
-
-            QueueCommand(COMMAND_CONTROLS, show ? "1" : "0");
+            var _params = new string[2];
+            _params[0] = COMMAND_CONTROLS;
+            _params[1] = show ? "1" : "0";
+            QueueCommand(COMMAND_CONTROLS, _params);
         }
 
         /// <summary>
@@ -850,7 +826,11 @@ namespace DMVideoPlayer
         /// <param name="mute"></param>
         private void mute(bool mute)
         {
-            QueueCommand(COMMAND_MUTE, mute);
+            var _params = new string[2];
+            _params[0] = COMMAND_MUTE;
+            _params[1] = mute ? "1" : "0";
+
+            QueueCommand(COMMAND_MUTE, _params);
         }
 
         public void Mute()
