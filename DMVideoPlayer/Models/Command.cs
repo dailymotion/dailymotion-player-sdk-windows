@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DMVideoPlayer.Model
+namespace DmVideoPlayer.Model
 {
     public class Command
     {

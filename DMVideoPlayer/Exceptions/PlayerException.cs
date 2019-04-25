@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DMVideoPlayer.Exceptions
+namespace DmVideoPlayer.Exceptions
 {
     public class PlayerException : Exception
     {

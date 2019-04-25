@@ -14,12 +14,12 @@ using Windows.UI;
 using Windows.UI.Xaml.Controls;
 using Windows.Web.Http;
 using DMVideoPlayer.Annotations;
-using DMVideoPlayer.Models.Enums;
-using DMVideoPlayer.Exceptions;
+using DmVideoPlayer.Models.Enums;
+using DmVideoPlayer.Exceptions;
 using Windows.Foundation.Collections;
-using DMVideoPlayer.Model;
+using DmVideoPlayer.Model;
 
-namespace DMVideoPlayer
+namespace DmVideoPlayer
 {
 
     public class DmPlayerController : INotifyPropertyChanged
@@ -247,7 +247,8 @@ namespace DMVideoPlayer
 
                 //doing call
                 DmVideoPlayer.NavigateWithHttpRequestMessage(request);
-            }
+
+           }
         }
 
 
@@ -638,8 +639,8 @@ namespace DMVideoPlayer
             //    {
             //    COMMAND_CONTROLS => "api", "controls",
             //};
-
-
+            //Debug.WriteLine(command.methodName);
+            
             switch (command.methodName)
             {
                 case COMMAND_MUTE:
@@ -647,7 +648,6 @@ namespace DMVideoPlayer
                     CallPlayerMethodV2("api", (Boolean)command.methodArguments ? "mute" : "unmute");
                     break;
                 case COMMAND_VOLUME:
-                //case COMMAND_MUTE:
                 case COMMAND_CONTROLS:
                     //player.api('controls','0')
                     CallPlayerMethodV2("api", command.methodArguments);
@@ -658,9 +658,9 @@ namespace DMVideoPlayer
                 case COMMAND_SEEK:
                     CallPlayerMethodV2(COMMAND_SEEK, command.methodArguments);
                     break;
-                case COMMAND_NOTIFYFULLSCREENCHANGED:
-                    CallPlayerMethodV2("setFullscreen", command.methodArguments);
-                    break;
+                //case COMMAND_NOTIFYFULLSCREENCHANGED:
+                //    CallPlayerMethodV2("setFullscreen", command.methodArguments);
+                //    break;
                 //case COMMAND_VOLUME:
                 //    CallPlayerMethodV2("api", command.methodArguments);
                 //    break;
@@ -678,6 +678,7 @@ namespace DMVideoPlayer
 
                 case COMMAND_PLAY:
                 case COMMAND_PAUSE:
+                case COMMAND_NOTIFYFULLSCREENCHANGED:
 
                     CallPlayerMethodV2("api", command.methodName);
                     break;
