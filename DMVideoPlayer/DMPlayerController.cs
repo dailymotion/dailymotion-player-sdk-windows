@@ -237,7 +237,7 @@ namespace DmVideoPlayer
                     //when user is not logged access token must be passed as a client_token and when 
                     //user logged as a access_token
                     SetCookieInWebView(IsLogged ? "access_token" : "client_token", this.AccessToken);
-                }
+                }                 
 
                 //Recieving the events the player is sending
                 DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
@@ -453,7 +453,8 @@ namespace DmVideoPlayer
             //special Headers for xbox and windows
             if (IsXbox)
             {
-                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
+                //message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
+                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18988");
             }
             else
             {
@@ -474,7 +475,12 @@ namespace DmVideoPlayer
         {
             var webView = new WebView(WebViewExecutionModeThread);
             webView.IsTapEnabled = true;
+            webView.IsDoubleTapEnabled = true;
+            webView.IsHoldingEnabled = false;
             webView.Opacity = 1;
+
+            //GetSavedCookiesInWebView();
+
             return webView;
         }
 
@@ -487,9 +493,21 @@ namespace DmVideoPlayer
         {
             Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
             Windows.Web.Http.HttpCookie cookie = new Windows.Web.Http.HttpCookie(key, ".dailymotion.com", "/");
-            cookie.Value = value;
+            cookie.Value = value;          
 
             filter.CookieManager.SetCookie(cookie, false);
+        }
+
+
+        /// <summary>
+        /// getting cookies in our webview
+        /// </summary>
+        private HttpCookieCollection GetSavedCookiesInWebView()
+        {
+            Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
+            var cookies = filter.CookieManager.GetCookies(new System.Uri("http://www.dailymotion.com"));
+
+            return cookies;
         }
 
         /// <summary>
@@ -647,23 +665,25 @@ namespace DmVideoPlayer
                     //player.api('mute','0')
                     CallPlayerMethodV2("api", (Boolean)command.methodArguments ? "mute" : "unmute");
                     break;
-                case COMMAND_VOLUME:
+ 
                 case COMMAND_CONTROLS:
                     //player.api('controls','0')
                     CallPlayerMethodV2("api", command.methodArguments);
                     break;
+
+                case COMMAND_VOLUME:
+                case COMMAND_TOGGLE_CONTROLS:
+                case COMMAND_NOTIFYFULLSCREENCHANGED:
+                    CallPlayerMethodV2("api", command.methodName);
+                    break;
+
                 case COMMAND_QUALITY:
                     CallPlayerMethodV2("setQuality", command.methodArguments);
                     break;
                 case COMMAND_SEEK:
                     CallPlayerMethodV2(COMMAND_SEEK, command.methodArguments);
                     break;
-                //case COMMAND_NOTIFYFULLSCREENCHANGED:
-                //    CallPlayerMethodV2("setFullscreen", command.methodArguments);
-                //    break;
-                //case COMMAND_VOLUME:
-                //    CallPlayerMethodV2("api", command.methodArguments);
-                //    break;
+ 
                 case COMMAND_SETPROP:
                     CallPlayerMethodV2(COMMAND_SETPROP, "neon", command.methodArguments);
                     break;
@@ -672,15 +692,11 @@ namespace DmVideoPlayer
                     string[] arguments = command.methodArguments as string[];
                     CallPlayerMethodV2(COMMAND_LOAD, arguments[0], arguments[1]);
                     break;
-                //case COMMAND_LOAD:
-                //    CallPlayerMethod("load", command.methodArguments);
-                //    break;
+
 
                 case COMMAND_PLAY:
                 case COMMAND_PAUSE:
-                case COMMAND_NOTIFYFULLSCREENCHANGED:
-
-                    CallPlayerMethodV2("api", command.methodName);
+                    CallPlayerMethodV2(command.methodName, command.methodArguments);
                     break;
                 default:
                     //COMMAND_LOAD
@@ -728,7 +744,7 @@ namespace DmVideoPlayer
                     }
                 }
             }
-            else
+            else if (param !=null)
             {
                 builder.Append("'" + param.ToString() + "'");
             }
@@ -741,7 +757,7 @@ namespace DmVideoPlayer
             //end
             builder.Append(')');
             string js = builder.ToString();
-
+            //js = "player.pause()";
             //if (!js.Contains("mute"))
             {
                 Debug.WriteLine(js);
@@ -779,8 +795,15 @@ namespace DmVideoPlayer
             //var hasControls = show ? "1" : "0";
             var _params = new string[2];
             _params[0] = COMMAND_CONTROLS;
-            _params[1] = show ? "1" : "0";
+            //_params[1] = show ? "1" : "0";
+            _params[1] = show ? "true" : "false";
             QueueCommand(COMMAND_CONTROLS, _params);
+            //QueueCommand(COMMAND_TOGGLE_CONTROLS);
+        }
+
+        public void ToggleControls()
+        {
+            QueueCommand(COMMAND_TOGGLE_CONTROLS);
         }
 
         /// <summary>
