@@ -18,6 +18,7 @@ using Windows.UI.Xaml.Navigation;
 using Newtonsoft.Json;
 using Windows.UI.ViewManagement;
 using DMVideoPlayer;
+using DmVideoPlayer;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 

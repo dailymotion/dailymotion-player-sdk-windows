@@ -450,11 +450,11 @@ namespace DmVideoPlayer
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
 
-            //special Headers for xbox and windows
+            ////special Headers for xbox and windows
             if (IsXbox)
             {
-                //message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
-                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18988");
+                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
+                //message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18988");
             }
             else
             {
