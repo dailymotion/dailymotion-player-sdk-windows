@@ -18,6 +18,7 @@ using DmVideoPlayer.Models.Enums;
 using DmVideoPlayer.Exceptions;
 using Windows.Foundation.Collections;
 using DmVideoPlayer.Model;
+using DmVideoPlayer.Helper;
 
 namespace DmVideoPlayer
 {
@@ -110,14 +111,8 @@ namespace DmVideoPlayer
         //public bool IsHeroVideo { get; set; }
         public bool PendingPlay { get; set; }
         public bool ShowingAd { get; set; }
-        public string BaseUrl
-        {
-            get { return _baseUrl ?? defaultUrl; }
-            set { _baseUrl = value; }
-        }
-        public string AppName { get; set; }
-
-        public bool IsXbox { get; set; } = false;
+       
+        public string AppName { get; set; }       
 
         public bool IsLogged { get; set; } = false;
 
@@ -126,6 +121,15 @@ namespace DmVideoPlayer
         public bool PlayWhenReady { get; set; } = false;
 
         public bool HasPlaybackReady { get; set; } = false;
+
+        //partners should not have to check this
+        internal bool IsXbox = DeviceTypeHelper.IsXbox;
+
+        public string BaseUrl
+        {
+            get { return _baseUrl ?? defaultUrl; }
+            set { _baseUrl = value; }
+        }
 
         private WebViewExecutionMode _webViewExecutionModeThread = WebViewExecutionMode.SameThread;
 
