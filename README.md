@@ -33,6 +33,15 @@ You will need to add `https://*.dailymotion.com/` to the application contentUri 
 Screenshot:
 ![http://i.imgur.com/OgKljKF.png](http://i.imgur.com/OgKljKF.png)
 
+ ### Queue System
+ 
+ The Commands sent to the SDK are sent into a queue, this queue will only be executed once the SDK has recieved and APIReady from the dailymotion endpoint.  If you load another video before this event is raised the SDk will drop all previous commands.
+ 
+ 
+ ### Custom User Agent 
+ 
+ The SDK allow you to set a custom user agent using the CustomUserAgent property.
+ 
 
  ### Feedback
 
