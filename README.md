@@ -42,6 +42,10 @@ Screenshot:
  
  The SDK allow you to set a custom user agent using the CustomUserAgent property.
  
+ ### Demo App
+
+A demo application has been been added that can help you query our public api and then launch the dailymotion player 
+
 
  ### Feedback
 
