@@ -125,6 +125,7 @@ namespace DMVideoPlayer_Sample
             //dmPlayerController.CustomUserAgent = My UserAgent;
 
             //you can tell the the SDK is it is running on a Xbox or not
+            //this is deprecated
             //dmPlayerController.IsXbox = false;
 
             //are you using an Oauth Token, if so is it a user token 
@@ -219,6 +220,7 @@ namespace DMVideoPlayer_Sample
             //dmPlayerController.CustomUserAgent = My UserAgent;
 
             //you can tell the the SDK is it is running on a Xbox or not
+            //this is deprecated
             //dmPlayerController.IsXbox = false;
 
             //are you using an Oauth Token, if so is it a user token 

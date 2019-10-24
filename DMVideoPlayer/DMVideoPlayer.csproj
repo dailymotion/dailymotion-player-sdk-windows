@@ -105,8 +105,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DmPlayerController.cs" />
+    <Compile Include="Helper\DeviceTypeHelper.cs" />
     <Compile Include="Models\Command.cs" />
     <Compile Include="Exceptions\PlayerException.cs" />
+    <Compile Include="Models\Enums\DeviceTypeEnum.cs" />
     <Compile Include="Models\Enums\Qualities.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
