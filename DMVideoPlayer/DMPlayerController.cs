@@ -458,8 +458,8 @@ namespace DmVideoPlayer
             }
             else
             {
-                //depricated if possible
-                ////special Headers for xbox and windows
+                ///TODO:depricated if possible
+                ////special Headers for xbox and windows - depricated
                 if (IsXbox)
                 {
                     message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
@@ -479,7 +479,10 @@ namespace DmVideoPlayer
             return message;
         }
 
-        //Creating a new webview
+        /// <summary>
+        /// Creating a webview fopr the dailymotion player
+        /// </summary>
+        /// <returns>Webview</returns>
         private WebView NewWebView()
         {
             var webView = new WebView(WebViewExecutionModeThread);
@@ -487,8 +490,6 @@ namespace DmVideoPlayer
             webView.IsDoubleTapEnabled = true;
             webView.IsHoldingEnabled = false;
             webView.Opacity = 1;
-
-            //GetSavedCookiesInWebView();
 
             return webView;
         }
@@ -511,6 +512,7 @@ namespace DmVideoPlayer
         /// <summary>
         /// getting cookies in our webview
         /// </summary>
+        [Obsolete("GetSavedCookiesInWebView is deprecated")]
         private HttpCookieCollection GetSavedCookiesInWebView()
         {
             Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
@@ -574,7 +576,6 @@ namespace DmVideoPlayer
             if (method.Equals(COMMAND_LOAD))
             {
                 //reset
-                //ApiReady = false;
                 HasPlaybackReady = false;
 
                 ////update iterator
@@ -583,9 +584,6 @@ namespace DmVideoPlayer
                 while (iterator.MoveNext())
                 {
                     Command item = iterator.Current;
-
-                    //foreach (Command item in mCommandList)
-                    //{
 
                     switch (item.methodName)
                     {
@@ -628,12 +626,11 @@ namespace DmVideoPlayer
 
             IEnumerator<Command> iterator = DuplicateCommandListToEnumerator();
 
+            //going over all the queue command
             while (iterator.MoveNext())
             {
                 Command command = iterator.Current;
 
-                //foreach (Command command in mCommandList)
-                //{
                 //check play pause, if playback not ready dont execute 
                 switch (command.methodName)
                 {
@@ -729,6 +726,7 @@ namespace DmVideoPlayer
         /// <param name="dataJson"></param>
         private async void CallPlayerMethodV2(string method, object param, object dataJson = null)
         {
+            ///TODO: rework this
             StringBuilder builder = new StringBuilder();
             builder.Append("player.");
             builder.Append(method);
@@ -742,11 +740,9 @@ namespace DmVideoPlayer
                 foreach (object o in convertedParams)
                 {
                     count++;
-                    //if (o.GetType().Equals(typeof(string)))
-                    //    builder.Append("'" + param + "'");
-                    //else
                     builder.Append("'" + o.ToString() + "'");
 
+                    //kinda dirty
                     if (count < convertedParams.Length)
                     {
                         builder.Append(",");
@@ -810,6 +806,9 @@ namespace DmVideoPlayer
             //QueueCommand(COMMAND_TOGGLE_CONTROLS);
         }
 
+        /// <summary>
+        /// Show/hide player controls
+        /// </summary>
         public void ToggleControls()
         {
             QueueCommand(COMMAND_TOGGLE_CONTROLS);
@@ -832,16 +831,6 @@ namespace DmVideoPlayer
 
             //calling play
             QueueCommand(COMMAND_PLAY);
-
-            //using new command queue
-            //if (IsHeroVideo)
-            //{
-            //    Mute();
-            //}
-            //else
-            //{
-            //    Unmute();
-            //}
         }
 
         /// <summary>
@@ -866,11 +855,17 @@ namespace DmVideoPlayer
             QueueCommand(COMMAND_MUTE, mute);
         }
 
+        /// <summary>
+        /// mute video
+        /// </summary>
         public void Mute()
         {
             mute(true);
         }
 
+        /// <summary>
+        /// un mute video
+        /// </summary>
         public void Unmute()
         {
             mute(false);
