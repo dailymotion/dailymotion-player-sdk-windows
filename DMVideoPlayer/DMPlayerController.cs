@@ -434,6 +434,7 @@ namespace DmVideoPlayer
                 }
             }
 
+            //Xbox webview is wokring differently then the desktop webview it needs this to work
             if (IsXbox && !string.IsNullOrEmpty(this.AccessToken))
             {
                 message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
