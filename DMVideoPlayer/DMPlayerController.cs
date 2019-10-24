@@ -109,7 +109,7 @@ namespace DmVideoPlayer
         public bool HasPlayerError { get; set; }
         public string VideoId { get; set; }
         public string AccessToken { get; set; }
-        // public string loadedJsonData { get; set; }
+        public string CustomUserAgent { get; set; }
         public IDictionary<string, string> WithParameters { get; set; }
         //public bool IsHeroVideo { get; set; }
         public bool PendingPlay { get; set; }
@@ -237,7 +237,7 @@ namespace DmVideoPlayer
                     //when user is not logged access token must be passed as a client_token and when 
                     //user logged as a access_token
                     SetCookieInWebView(IsLogged ? "access_token" : "client_token", this.AccessToken);
-                }                 
+                }
 
                 //Recieving the events the player is sending
                 DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
@@ -248,7 +248,7 @@ namespace DmVideoPlayer
                 //doing call
                 DmVideoPlayer.NavigateWithHttpRequestMessage(request);
 
-           }
+            }
         }
 
 
@@ -450,16 +450,25 @@ namespace DmVideoPlayer
         {
             var message = new HttpRequestMessage(HttpMethod.Get, Url(videoId, parameters));
 
-            ////special Headers for xbox and windows
-            if (IsXbox)
+            //new way of setting user agent on the webview
+            if (!string.IsNullOrWhiteSpace(CustomUserAgent))
             {
-                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
-                //message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18988");
+                //setting new/update useragent
+                message.Headers.Add("User-Agent", CustomUserAgent);
             }
             else
             {
-                //other windows devices
-                message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+                ///TODO:depricated if possible
+                ////special Headers for xbox and windows - depricated
+                if (IsXbox)
+                {
+                    message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox One) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134");
+                }
+                else
+                {
+                    //Classic windows devices
+                    message.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+                }
             }
 
             if (IsXbox && !string.IsNullOrEmpty(this.AccessToken))
@@ -470,7 +479,10 @@ namespace DmVideoPlayer
             return message;
         }
 
-        //Creating a new webview
+        /// <summary>
+        /// Creating a webview fopr the dailymotion player
+        /// </summary>
+        /// <returns>Webview</returns>
         private WebView NewWebView()
         {
             var webView = new WebView(WebViewExecutionModeThread);
@@ -478,8 +490,6 @@ namespace DmVideoPlayer
             webView.IsDoubleTapEnabled = true;
             webView.IsHoldingEnabled = false;
             webView.Opacity = 1;
-
-            //GetSavedCookiesInWebView();
 
             return webView;
         }
@@ -493,7 +503,7 @@ namespace DmVideoPlayer
         {
             Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
             Windows.Web.Http.HttpCookie cookie = new Windows.Web.Http.HttpCookie(key, ".dailymotion.com", "/");
-            cookie.Value = value;          
+            cookie.Value = value;
 
             filter.CookieManager.SetCookie(cookie, false);
         }
@@ -502,6 +512,7 @@ namespace DmVideoPlayer
         /// <summary>
         /// getting cookies in our webview
         /// </summary>
+        [Obsolete("GetSavedCookiesInWebView is deprecated")]
         private HttpCookieCollection GetSavedCookiesInWebView()
         {
             Windows.Web.Http.Filters.HttpBaseProtocolFilter filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
@@ -565,7 +576,6 @@ namespace DmVideoPlayer
             if (method.Equals(COMMAND_LOAD))
             {
                 //reset
-                //ApiReady = false;
                 HasPlaybackReady = false;
 
                 ////update iterator
@@ -574,9 +584,6 @@ namespace DmVideoPlayer
                 while (iterator.MoveNext())
                 {
                     Command item = iterator.Current;
-
-                    //foreach (Command item in mCommandList)
-                    //{
 
                     switch (item.methodName)
                     {
@@ -619,12 +626,11 @@ namespace DmVideoPlayer
 
             IEnumerator<Command> iterator = DuplicateCommandListToEnumerator();
 
+            //going over all the queue command
             while (iterator.MoveNext())
             {
                 Command command = iterator.Current;
 
-                //foreach (Command command in mCommandList)
-                //{
                 //check play pause, if playback not ready dont execute 
                 switch (command.methodName)
                 {
@@ -658,14 +664,14 @@ namespace DmVideoPlayer
             //    COMMAND_CONTROLS => "api", "controls",
             //};
             //Debug.WriteLine(command.methodName);
-            
+
             switch (command.methodName)
             {
                 case COMMAND_MUTE:
                     //player.api('mute','0')
                     CallPlayerMethodV2("api", (Boolean)command.methodArguments ? "mute" : "unmute");
                     break;
- 
+
                 case COMMAND_CONTROLS:
                     //player.api('controls','0')
                     CallPlayerMethodV2("api", command.methodArguments);
@@ -683,7 +689,7 @@ namespace DmVideoPlayer
                 case COMMAND_SEEK:
                     CallPlayerMethodV2(COMMAND_SEEK, command.methodArguments);
                     break;
- 
+
                 case COMMAND_SETPROP:
                     CallPlayerMethodV2(COMMAND_SETPROP, "neon", command.methodArguments);
                     break;
@@ -720,6 +726,7 @@ namespace DmVideoPlayer
         /// <param name="dataJson"></param>
         private async void CallPlayerMethodV2(string method, object param, object dataJson = null)
         {
+            ///TODO: rework this
             StringBuilder builder = new StringBuilder();
             builder.Append("player.");
             builder.Append(method);
@@ -733,18 +740,16 @@ namespace DmVideoPlayer
                 foreach (object o in convertedParams)
                 {
                     count++;
-                    //if (o.GetType().Equals(typeof(string)))
-                    //    builder.Append("'" + param + "'");
-                    //else
-                        builder.Append("'" + o.ToString() + "'");
+                    builder.Append("'" + o.ToString() + "'");
 
+                    //kinda dirty
                     if (count < convertedParams.Length)
                     {
                         builder.Append(",");
                     }
                 }
             }
-            else if (param !=null)
+            else if (param != null)
             {
                 builder.Append("'" + param.ToString() + "'");
             }
@@ -801,6 +806,9 @@ namespace DmVideoPlayer
             //QueueCommand(COMMAND_TOGGLE_CONTROLS);
         }
 
+        /// <summary>
+        /// Show/hide player controls
+        /// </summary>
         public void ToggleControls()
         {
             QueueCommand(COMMAND_TOGGLE_CONTROLS);
@@ -823,16 +831,6 @@ namespace DmVideoPlayer
 
             //calling play
             QueueCommand(COMMAND_PLAY);
-
-            //using new command queue
-            //if (IsHeroVideo)
-            //{
-            //    Mute();
-            //}
-            //else
-            //{
-            //    Unmute();
-            //}
         }
 
         /// <summary>
@@ -857,11 +855,17 @@ namespace DmVideoPlayer
             QueueCommand(COMMAND_MUTE, mute);
         }
 
+        /// <summary>
+        /// mute video
+        /// </summary>
         public void Mute()
         {
             mute(true);
         }
 
+        /// <summary>
+        /// un mute video
+        /// </summary>
         public void Unmute()
         {
             mute(false);
