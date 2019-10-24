@@ -18,6 +18,7 @@ using DmVideoPlayer.Models.Enums;
 using DmVideoPlayer.Exceptions;
 using Windows.Foundation.Collections;
 using DmVideoPlayer.Model;
+using DmVideoPlayer.Helper;
 
 namespace DmVideoPlayer
 {
@@ -70,12 +71,8 @@ namespace DmVideoPlayer
         private static string defaultUrlStage = "https://stage-01.dailymotion.com";
         private static string defaultUrl = "https://www.dailymotion.com";
 
-        private static bool defaultIsTapEnabled = true;
+        private static string version = "3.0.2";
 
-        private static string HockeyAppId = "6d380067c4d848ce863b232a1c5f10ae";
-        private static string version = "3.0.1";
-        //private static string bundleIdentifier = "com.dailymotion.dailymotion";
-        //private static string bundleIdentifier = "WindowsSDK";
         private static string eventName = "dmevent";
         private static string eventNameV2 = "event=";
         private static string pathPrefix = "/embed/";
@@ -104,7 +101,7 @@ namespace DmVideoPlayer
         public event Action OnDmWebViewMessageUpdated;
 
         private string _baseUrl; // URL!
-        private string _appName; // URL!
+
         public bool ApiReady { get; set; }
         public bool HasPlayerError { get; set; }
         public string VideoId { get; set; }
@@ -114,54 +111,24 @@ namespace DmVideoPlayer
         //public bool IsHeroVideo { get; set; }
         public bool PendingPlay { get; set; }
         public bool ShowingAd { get; set; }
+       
+        public string AppName { get; set; }       
+
+        public bool IsLogged { get; set; } = false;
+
+        public bool VideoPaused { get; set; } = false;
+
+        public bool PlayWhenReady { get; set; } = false;
+
+        public bool HasPlaybackReady { get; set; } = false;
+
+        //partners should not have to check this
+        internal bool IsXbox = DeviceTypeHelper.IsXbox;
+
         public string BaseUrl
         {
             get { return _baseUrl ?? defaultUrl; }
             set { _baseUrl = value; }
-        }
-        public string AppName
-        {
-            get { return _appName; }
-            set { _appName = value; }
-        }
-
-        private bool _isXbox = false;
-
-        public bool IsXbox
-        {
-            get { return _isXbox; }
-            set { _isXbox = value; }
-        }
-
-        private bool _isLogged = false;
-
-        public bool IsLogged
-        {
-            get { return _isLogged; }
-            set { _isLogged = value; }
-        }
-
-        private bool _videoPaused = false;
-
-        public bool VideoPaused
-        {
-            get { return _videoPaused; }
-            set { _videoPaused = value; }
-        }
-        private bool _playWhenReady = false;
-
-        public bool PlayWhenReady
-        {
-            get { return _playWhenReady; }
-            set { _playWhenReady = value; }
-        }
-
-        private bool _hasPlaybackReady = false;
-
-        public bool HasPlaybackReady
-        {
-            get { return _hasPlaybackReady; }
-            set { _hasPlaybackReady = value; }
         }
 
         private WebViewExecutionMode _webViewExecutionModeThread = WebViewExecutionMode.SameThread;
@@ -471,6 +438,7 @@ namespace DmVideoPlayer
                 }
             }
 
+            //Xbox webview is wokring differently then the desktop webview it needs this to work
             if (IsXbox && !string.IsNullOrEmpty(this.AccessToken))
             {
                 message.Headers.Add("Authorization", "Bearer " + this.AccessToken);
