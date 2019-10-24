@@ -120,6 +120,13 @@ namespace DMVideoPlayer_Sample
             //init
             dmPlayerController = new DmPlayerController();
 
+
+
+            //dmPlayerController.CustomUserAgent = My UserAgent;
+            //dmPlayerController.IsXbox = false;
+            //dmPlayerController.IsLogged = false;
+
+
             var accessToken = "";// "myAccessToken";
 
             //init the DMVideoPlayer
