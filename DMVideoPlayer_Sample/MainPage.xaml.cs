@@ -121,9 +121,13 @@ namespace DMVideoPlayer_Sample
             dmPlayerController = new DmPlayerController();
 
 
-
+            //if needed you can set a specific user agent into the webview
             //dmPlayerController.CustomUserAgent = My UserAgent;
+
+            //you can tell the the SDK is it is running on a Xbox or not
             //dmPlayerController.IsXbox = false;
+
+            //are you using an Oauth Token, if so is it a user token 
             //dmPlayerController.IsLogged = false;
 
 
@@ -210,6 +214,15 @@ namespace DMVideoPlayer_Sample
 
             //init
             dmPlayerController = new DmPlayerController();
+
+            //if needed you can set a specific user agent into the webview
+            //dmPlayerController.CustomUserAgent = My UserAgent;
+
+            //you can tell the the SDK is it is running on a Xbox or not
+            //dmPlayerController.IsXbox = false;
+
+            //are you using an Oauth Token, if so is it a user token 
+            //dmPlayerController.IsLogged = false;
 
             var accessToken = "";// "myAccessToken";
 
