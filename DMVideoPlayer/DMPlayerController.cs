@@ -70,12 +70,8 @@ namespace DmVideoPlayer
         private static string defaultUrlStage = "https://stage-01.dailymotion.com";
         private static string defaultUrl = "https://www.dailymotion.com";
 
-        private static bool defaultIsTapEnabled = true;
+        private static string version = "3.0.2";
 
-        private static string HockeyAppId = "6d380067c4d848ce863b232a1c5f10ae";
-        private static string version = "3.0.1";
-        //private static string bundleIdentifier = "com.dailymotion.dailymotion";
-        //private static string bundleIdentifier = "WindowsSDK";
         private static string eventName = "dmevent";
         private static string eventNameV2 = "event=";
         private static string pathPrefix = "/embed/";
@@ -104,7 +100,7 @@ namespace DmVideoPlayer
         public event Action OnDmWebViewMessageUpdated;
 
         private string _baseUrl; // URL!
-        private string _appName; // URL!
+
         public bool ApiReady { get; set; }
         public bool HasPlayerError { get; set; }
         public string VideoId { get; set; }
@@ -119,50 +115,17 @@ namespace DmVideoPlayer
             get { return _baseUrl ?? defaultUrl; }
             set { _baseUrl = value; }
         }
-        public string AppName
-        {
-            get { return _appName; }
-            set { _appName = value; }
-        }
+        public string AppName { get; set; }
 
-        private bool _isXbox = false;
+        public bool IsXbox { get; set; } = false;
 
-        public bool IsXbox
-        {
-            get { return _isXbox; }
-            set { _isXbox = value; }
-        }
+        public bool IsLogged { get; set; } = false;
 
-        private bool _isLogged = false;
+        public bool VideoPaused { get; set; } = false;
 
-        public bool IsLogged
-        {
-            get { return _isLogged; }
-            set { _isLogged = value; }
-        }
+        public bool PlayWhenReady { get; set; } = false;
 
-        private bool _videoPaused = false;
-
-        public bool VideoPaused
-        {
-            get { return _videoPaused; }
-            set { _videoPaused = value; }
-        }
-        private bool _playWhenReady = false;
-
-        public bool PlayWhenReady
-        {
-            get { return _playWhenReady; }
-            set { _playWhenReady = value; }
-        }
-
-        private bool _hasPlaybackReady = false;
-
-        public bool HasPlaybackReady
-        {
-            get { return _hasPlaybackReady; }
-            set { _hasPlaybackReady = value; }
-        }
+        public bool HasPlaybackReady { get; set; } = false;
 
         private WebViewExecutionMode _webViewExecutionModeThread = WebViewExecutionMode.SameThread;
 
