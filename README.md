@@ -8,13 +8,13 @@ For a full documentation of the Player API, see [https://developer.dailymotion.c
 
 ### Manually
 
-Just add the Release Lib `DMVideoPlayer.dll` to your project.
+Just add the Release Lib `DmVideoPlayer.dll` to your project.
 
 ## Usage
 
 Check out the repository and open `Dailymotion_VideoPlayer_Sample.sln` for a working example of how to embed the Dailymotion Player into your app.
 
-Also look at the `Load` methods of `DMPlayerController` for ways to embed the Dailymotion Player.
+Also look at the `Load` methods of `DmPlayerController` for ways to embed the Dailymotion Player.
 
 #### White-listing dailymotion.com in Package.appxmanifest
 
