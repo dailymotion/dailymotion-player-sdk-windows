@@ -724,7 +724,8 @@ namespace DmVideoPlayer
 
             if (dataJson != null)
             {
-                builder.Append(",JSON.parse('" + dataJson + "')");
+                //builder.Append(",JSON.parse('" + dataJson + "')");
+                builder.Append(",'" + dataJson + "'");
             }
 
             //end
@@ -732,9 +733,9 @@ namespace DmVideoPlayer
             string js = builder.ToString();
             //js = "player.pause()";
             //if (!js.Contains("mute"))
-            {
-                Debug.WriteLine(js);
-            }
+            //{
+            //    Debug.WriteLine(js);
+            //}
 
             List<string> callingJsMethod = new List<string>();
             callingJsMethod.Add(js);
