@@ -733,7 +733,7 @@ namespace DmVideoPlayer
             string js = builder.ToString();
             //js = "player.pause()";
             //if (!js.Contains("mute"))
-            {
+            //{
             //    Debug.WriteLine(js);
             //}
 
