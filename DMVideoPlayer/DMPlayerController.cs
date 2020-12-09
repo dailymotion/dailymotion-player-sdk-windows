@@ -277,7 +277,8 @@ namespace DmVideoPlayer
                 {
                     var _params = new string[2];
                     _params[0] = VideoId;
-                    _params[1] = WithParameters["loadedJsonData"];
+                    _params[1] =   WithParameters["loadedJsonData"];
+                    //_params[1] = $"JSON.parse('{ WithParameters["loadedJsonData"]}')";
 
                     QueueCommand(COMMAND_LOAD_JSON, _params);
                 }
@@ -725,7 +726,8 @@ namespace DmVideoPlayer
             if (dataJson != null)
             {
                 //builder.Append(",JSON.parse('" + dataJson + "')");
-                builder.Append(",'" + dataJson + "'");
+                               
+                builder.Append("," + dataJson + "");
             }
 
             //end
