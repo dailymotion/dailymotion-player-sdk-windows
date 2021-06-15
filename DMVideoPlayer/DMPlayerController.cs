@@ -111,8 +111,8 @@ namespace DmVideoPlayer
         //public bool IsHeroVideo { get; set; }
         public bool PendingPlay { get; set; }
         public bool ShowingAd { get; set; }
-       
-        public string AppName { get; set; }       
+
+        public string AppName { get; set; }
 
         public bool IsLogged { get; set; } = false;
 
@@ -176,11 +176,60 @@ namespace DmVideoPlayer
         ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
         ///   - withParameters:  The dictionary of configuration parameters that are passed to the player.
         ///   - withCookiesParameters:     An optional array of HTTPCookie values that are passed to the player.
+        [Obsolete("This method is obsolete. Call Init with IDictionarys only.", false)]
         public void Init(string accessToken = "",
             IDictionary<string, string> withParameters = null,
             IDictionary<string, string> withCookiesParameters = null)
         {
             this.AccessToken = accessToken;
+            HasPlayerError = false;
+            //Creating a new webview when doing a new call
+            if (DmVideoPlayer == null)
+            {
+                DmVideoPlayer = NewWebView();
+
+                //setting cookies if needed
+                if (withCookiesParameters != null)
+                {
+                    //if in params we have the keys v1st or tg then we need to send it to the player in a cookie
+                    foreach (var cookie in withCookiesParameters)
+                    {
+                        //set cookie
+                        SetCookieInWebView(cookie.Key, cookie.Value);
+                    }
+                }
+
+                //////set access token
+                if (IsXbox == false && !string.IsNullOrEmpty(this.AccessToken))
+                {
+                    //when user is not logged access token must be passed as a client_token and when 
+                    //user logged as a access_token
+                    SetCookieInWebView(IsLogged ? "access_token" : "client_token", this.AccessToken);
+                }
+
+                //Recieving the events the player is sending
+                DmVideoPlayer.ScriptNotify += DmWebView_ScriptNotify;
+
+                //creating http request message to send to the webview
+                HttpRequestMessage request = NewRequest("", withParameters);
+
+                //doing call
+                DmVideoPlayer.NavigateWithHttpRequestMessage(request);
+
+            }
+        }
+
+        public void Init(IDictionary<string, string> withParameters = null,
+           IDictionary<string, string> withCookiesParameters = null)
+        {
+            //get token from params
+            if (withParameters.ContainsKey("AccessToken"))
+            {
+                this.AccessToken = withParameters["AccessToken"];
+            }
+            
+
+
             HasPlayerError = false;
             //Creating a new webview when doing a new call
             if (DmVideoPlayer == null)
@@ -224,7 +273,7 @@ namespace DmVideoPlayer
         ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
         ///   - withParameters:  The dictionary of configuration parameters that are passed to the player.
         ///   - withCookiesParameters:     An optional array of HTTPCookie values that are passed to the player.
-
+        [Obsolete("This method is obsolete. Call Init with IDictionarys only.", false)]
         public void Reset(string accessToken = "",
                             IDictionary<string, string> withParameters = null,
                             IDictionary<string, string> withCookiesParameters = null)
@@ -237,12 +286,24 @@ namespace DmVideoPlayer
             Init(accessToken, withParameters, withCookiesParameters);
         }
 
+        public void Reset(IDictionary<string, string> withParameters = null,
+                            IDictionary<string, string> withCookiesParameters = null)
+        {
+            //clear
+            DmVideoPlayer = null;
+            WithParameters = null;
+
+            //init player
+            Init(withParameters, withCookiesParameters);
+        }
+
         /// Load a video with ID and optional OAuth token
         ///
         /// - Parameter videoId:        The video's XID
         ///   - accessToken: An optional oauth token. If provided it will be passed as Bearer token to the player.
         ///   - withParameters:  The dictionary of configuration parameters that are passed to the player.
         ///   - withCookiesParameters:     An optional array of HTTPCookie values that are passed to the player.
+        [Obsolete("This method is obsolete. Call Init with IDictionarys only.", false)]
         public void Load(string videoId, string accessToken = "", IDictionary<string, string> withParameters = null, IDictionary<string, string> withCookiesParameters = null)
         {
             HasPlayerError = false;
@@ -278,6 +339,7 @@ namespace DmVideoPlayer
                     var _params = new string[2];
                     _params[0] = VideoId;
                     _params[1] = WithParameters["loadedJsonData"];
+                    //_params[1] = $"JSON.parse('{ WithParameters["loadedJsonData"]}')";
 
                     QueueCommand(COMMAND_LOAD_JSON, _params);
                 }
@@ -301,6 +363,83 @@ namespace DmVideoPlayer
                 }
             }
         }
+
+
+        public void Load(IDictionary<string, string> withParameters = null, IDictionary<string, string> withCookiesParameters = null)
+        {
+            HasPlayerError = false;
+
+            //get token from params
+            if (withParameters.ContainsKey("AccessToken"))
+            {
+                this.AccessToken = withParameters["AccessToken"];
+            }
+
+            //get VideoId from params
+            if (withParameters.ContainsKey("VideoId"))
+            {
+                this.VideoId = withParameters["VideoId"];
+            }
+
+            //this.VideoId = videoId;
+            this.WithParameters = withParameters;
+            //this.AccessToken = accessToken;
+
+            //check base url
+            if (BaseUrl != null)
+            {
+                //Creating a new webview when doing a new call
+                //or using the JS to load the video if the player is already loaded
+                if (DmVideoPlayer == null)
+                {
+                    //init webview with cookies
+                    Init(withParameters, withCookiesParameters);
+                }
+
+                //if empty bypass 
+                if (WithParameters == null)
+                    return;
+
+                ///Creatings commands from passed Paramaters
+                //COMMAND_SETPROP
+                if (WithParameters.ContainsKey("jsonEnvironmentInfo"))
+                {
+                    QueueCommand(COMMAND_SETPROP, WithParameters["jsonEnvironmentInfo"]);
+                }
+
+                //COMMAND_LOAD_JSON
+                if (WithParameters.ContainsKey("loadedJsonData"))
+                {
+                    var _params = new string[2];
+                    _params[0] = VideoId;
+                    _params[1] = WithParameters["loadedJsonData"];
+                    //_params[1] = $"JSON.parse('{ WithParameters["loadedJsonData"]}')";
+
+                    QueueCommand(COMMAND_LOAD_JSON, _params);
+                }
+                else
+                {
+                    //CallPlayerMethod("load", VideoId);
+                    QueueCommand(COMMAND_LOAD, VideoId);
+                }
+
+                //check to see if we wish to mute or not the video
+                if (WithParameters.ContainsKey("mute"))
+                {
+                    if (WithParameters["mute"] == "true")
+                    {
+                        Mute();
+                    }
+                    else
+                    {
+                        Unmute();
+                    }
+                }
+            }
+        }
+
+
+
 
         /// <summary>
         /// cleaning up events
@@ -670,10 +809,7 @@ namespace DmVideoPlayer
 
                 case COMMAND_PLAY:
                 case COMMAND_PAUSE:
-                    CallPlayerMethodV2(command.methodName, command.methodArguments);
-                    break;
-                default:
-                    //COMMAND_LOAD
+                case COMMAND_LOAD:
                     CallPlayerMethodV2(command.methodName, command.methodArguments);
                     break;
             }
@@ -725,16 +861,28 @@ namespace DmVideoPlayer
             if (dataJson != null)
             {
                 //builder.Append(",JSON.parse('" + dataJson + "')");
-                builder.Append(",'" + dataJson + "'");
+
+
+                //builder.Append($",JSON.parse({dataJson})");
+
+                builder.Append("," + dataJson + "");
+                //builder.Append($",{dataJson}");
             }
 
             //end
             builder.Append(')');
             string js = builder.ToString();
             //js = "player.pause()";
+
+            //if (js.Contains("player.load"))
+            //{
+            //    js = $"player.load(JSON.parse('{dataJson},\"video\":\"{param}\"'))";
+
+            //}
+
             //if (!js.Contains("mute"))
             //{
-            //    Debug.WriteLine(js);
+            Debug.WriteLine(js);
             //}
 
             List<string> callingJsMethod = new List<string>();
