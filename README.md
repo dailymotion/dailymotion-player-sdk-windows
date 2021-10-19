@@ -44,8 +44,10 @@ Screenshot:
  
  ### help center
  
-Question please use our help center: https://faq.dailymotion.com/hc
-Issues may also be submited here: [GitHub issues tracker]
+
+ Question please use our help center: https://faq.dailymotion.com/hc
+ Issues may also be submited here: [GitHub issues tracker](issues) or here File bugs or other issues http://github.com/dailymotion/dailymotion-player-sdk-windows/issues
+
  
  ### Demo App
 
