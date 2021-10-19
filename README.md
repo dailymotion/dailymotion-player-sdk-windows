@@ -44,21 +44,12 @@ Screenshot:
  
  ### help center
  
- Question please use our help center: https://faq.dailymotion.com/hc
+Question please use our help center: https://faq.dailymotion.com/hc
+Issues may also be submited here: [GitHub issues tracker]
  
  ### Demo App
 
 A demo application has been been added that can help you query our public api and then launch the dailymotion player 
 
-
- ### Feedback
-
-We are relying on the [GitHub issues tracker](issues) for feedback. File bugs or other issues http://github.com/dailymotion/dailymotion-player-sdk-windows/issues
-
-### TODO List
-
-Here is what is coming in the next months:
-
-- Improve Player SDK for Windows UWP apps
 
 **Warning:** **This library is up-to-date and maintained if you want to use the Dailymotion Player on your native Windows UWP apps**.
