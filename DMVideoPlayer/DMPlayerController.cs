@@ -82,6 +82,7 @@ namespace DmVideoPlayer
         public const string COMMAND_NOTIFY_LIKECHANGED = "notifyLikeChanged";
         public const string COMMAND_NOTIFY_WATCHLATERCHANGED = "notifyWatchLaterChanged";
         public const string COMMAND_NOTIFYFULLSCREENCHANGED = "notifyFullscreenChanged";
+        public const string COMMAND_SCALE = "scaleMode";
         public const string COMMAND_LOAD = "load";
         public const string COMMAND_LOAD_JSON = "load_json";
         public const string COMMAND_MUTE = "mute";
@@ -227,7 +228,7 @@ namespace DmVideoPlayer
             {
                 this.AccessToken = withParameters["AccessToken"];
             }
-            
+
 
 
             HasPlayerError = false;
@@ -812,6 +813,11 @@ namespace DmVideoPlayer
                 case COMMAND_LOAD:
                     CallPlayerMethodV2(command.methodName, command.methodArguments);
                     break;
+
+                case COMMAND_SCALE:
+                    CallPlayerMethodV2("api", "scaleMode", command.methodArguments);
+                   
+                    break;
             }
         }
 
@@ -1030,6 +1036,18 @@ namespace DmVideoPlayer
         {
             QueueCommand(COMMAND_NOTIFYFULLSCREENCHANGED, isFullScreen);
         }
+
+
+        /// <summary>
+        /// inform player that it needs to fill / fit / eyc
+        /// </summary>
+        /// <param name="scaleMode"></param>
+        public void scaleMode(string scaleMode)
+        {
+            QueueCommand(COMMAND_SCALE, scaleMode);
+        }
+
+
 
         #endregion
 

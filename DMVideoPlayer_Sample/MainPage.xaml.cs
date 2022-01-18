@@ -99,7 +99,7 @@ namespace DMVideoPlayer_Sample
             parameters["autoplay"] = "true";
             parameters["ui-logo"] = "0";
             parameters["endscreen-enable"] = "false";
-            // parameters["chromeless"] = "true";
+            parameters["scaleMode"] = "fill";
             parameters["auto"] = "true";
 
 
